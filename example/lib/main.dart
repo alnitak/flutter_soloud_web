@@ -6,6 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:flutter_soloud/sound_hash.dart';
 
+
+import 'package:flutter_soloud/worker/worker_web.dart'
+  if (dart.library.io) 'package:flutter_soloud/worker/worker_io.dart' ;
+
 void main() {
   runApp(const MyApp());
 }
@@ -21,11 +25,19 @@ class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
   final _flutterSoloudPlugin = FlutterSoloud();
   int soundHash = 0;
+  late WorkerController controller;
 
   @override
   void initState() {
     super.initState();
     initPlatformState();
+    
+    controller = WorkerController();
+    controller.spawn('assets/packages/flutter_soloud/web/worker.dart.js');
+
+    controller.onReceive().listen((event) {
+      print('worker: receive message!! $event');
+    });
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -103,6 +115,13 @@ class _MyAppState extends State<MyApp> {
                   _flutterSoloudPlugin.deinit();
                 },
                 child: const Text('dispose'),
+              ),
+              const SizedBox(height: 20),
+              OutlinedButton(
+                onPressed: () {
+                  controller.sendMessage({'event': 123, 'args': 'args', 'return': 'return'});
+                },
+                child: const Text('WORKER'),
               ),
             ],
           ),

@@ -1,0 +1,25 @@
+# https://github.com/dart-lang/build/blob/master/docs/build_yaml_format.md
+
+# #Debug mode
+# dart run build_runner build --delete-conflicting-outputs -o web:build/web/
+# cp -f build/web/worker.dart.js web/worker.dart.js
+
+# #Release mode
+# dart run build_runner build --release --delete-conflicting-outputs -o web:build/web/
+# cp -f build/web/worker.dart.js web/worker.dart.min.js
+
+
+targets:
+  $default:
+    builders:
+      build_web_compilers:entrypoint:
+        generate_for:
+          - web/worker.dart
+        options:
+          compiler: dart2js
+        dev_options:
+          dart2js_args:
+            - --no-minify
+        release_options:
+          dart2js_args:
+            - -O4

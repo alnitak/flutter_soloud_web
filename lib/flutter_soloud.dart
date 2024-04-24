@@ -1,15 +1,15 @@
-// import 'package:web/web.dart' as web;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_soloud/audio_source.dart';
 import 'package:flutter_soloud/sound_hash.dart';
 import 'package:flutter_soloud/bindings_player_web_ffi.dart';
 import 'package:flutter_soloud/enums.dart';
+import 'package:flutter_soloud/worker/js_import.dart';
 
 import 'flutter_soloud_platform_interface.dart';
 
 class FlutterSoloud {
-  Future<String?> getPlatformVersion() {
+  Future<String?> getPlatformVersion() async{
+    await JSImport.import(source: 'wasm/build/libflutter_soloud_plugin.js', package: 'flutter_soloud');
     return FlutterSoloudPlatform.instance.getPlatformVersion();
   }
 

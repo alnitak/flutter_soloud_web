@@ -9,7 +9,7 @@ cd build
 #-g3 #keep debug info, including JS whitespace, function names
 #-sSTACK_SIZE=1048576 -sALLOW_MEMORY_GROWTH
 
-rm ../../example/web/libflutter_soloud_plugin.*
+# rm ../../example/web/libflutter_soloud_plugin.*
 
 # https://emscripten.org/docs/tools_reference/settings_reference.html
 em++ \
@@ -37,7 +37,8 @@ em++ \
 --shell-file ../html_template.html \
 -s DEFAULT_TO_CXX \
 -s STACK_SIZE=1048576 -s ALLOW_MEMORY_GROWTH \
--o ../../example/web/libflutter_soloud_plugin.js
+-o libflutter_soloud_plugin.js
+#-o ../../example/web/libflutter_soloud_plugin.js
 
 #emcc -o main.html ../../src/main.c --shell-file ../html_template.html \
 #-I ~/.emscripten_cache/sysroot/include \
