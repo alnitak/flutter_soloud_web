@@ -39,7 +39,7 @@ class WorkerController implements base.WorkerController {
 
   @override
   Future<void> waitByInitialized() async {
-    if(initialized) {
+    if (initialized) {
       return;
     }
     await _initializedCompleter.future;

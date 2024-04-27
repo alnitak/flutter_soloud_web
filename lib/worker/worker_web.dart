@@ -2,16 +2,18 @@ import 'dart:async';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 import 'dart:js_util';
+import 'dart:convert' show jsonDecode;
 
 import 'worker.dart' as base;
-import 'dart:html' as html;
+// import 'dart:html' as html;
+import 'package:web/web.dart' as web;
 
 // Masked type: ServiceWorkerGlobalScope
 @JS('self')
 external JSAny get globalScopeSelf;
 
 void jsSendMessage(dynamic m) {
-  globalContext.callMethod('postMessage'.toJS, m.jsify());
+  globalContext.callMethod('postMessage'.toJS, m);
 }
 
 Stream<T> callbackToStream<J, T>(
@@ -31,32 +33,33 @@ class Worker implements base.Worker {
 
   Worker() {
     _outputController = StreamController();
-    callbackToStream(globalScopeSelf, 'onmessage', (html.MessageEvent e) {
+    callbackToStream(globalScopeSelf, 'onmessage', (web.MessageEvent e) {
       _outputController.add(getProperty(e, 'data'));
     });
   }
-  
+
   @override
   Stream onReceive() => _outputController.stream;
 
   @override
-  void sendMessage(message) {
+  void sendMessage(dynamic message) {
     jsSendMessage(message);
   }
 }
 
 class WorkerController implements base.WorkerController {
-  html.Worker? _worker;
+  web.Worker? _worker;
   StreamController<dynamic>? _outputController;
 
   @override
   void spawn(String path) async {
     _outputController = StreamController();
     path = (path.endsWith('.dart') ? '$path.js' : path);
-    _worker = html.Worker(path);
-    _worker?.onMessage.listen((event) {
-      _outputController?.add(event.data);
-    });
+    _worker = web.Worker(path);
+
+    _worker?.onmessage = (((web.MessageEvent event) {
+      _outputController?.add(event.data.dartify());
+    })).toJS;
   }
 
   @override
@@ -66,7 +69,12 @@ class WorkerController implements base.WorkerController {
 
   @override
   void sendMessage(dynamic message) {
-    _worker?.postMessage(message);
+    if (message is Map) {
+      _worker?.postMessage(mapToJsObject(message).jsify());
+    } else {
+      _worker?.postMessage(message);
+    }
+    // _worker?.postMessage(message.jsify());
   }
 
   @override
@@ -77,5 +85,17 @@ class WorkerController implements base.WorkerController {
   @override
   void kill() {
     _worker?.terminate();
+  }
+
+  Object mapToJsObject(Map map) {
+    var object = newObject();
+    map.forEach((k, v) {
+      if (v is Map) {
+        setProperty(object, k, mapToJsObject(v));
+      } else {
+        setProperty(object, k, v);
+      }
+    });
+    return object;
   }
 }
