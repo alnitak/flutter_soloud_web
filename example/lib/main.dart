@@ -6,9 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:flutter_soloud/sound_hash.dart';
 
-
 import 'package:flutter_soloud/worker/worker_web.dart'
-  if (dart.library.io) 'package:flutter_soloud/worker/worker_io.dart' ;
+    if (dart.library.io) 'package:flutter_soloud/worker/worker_io.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,19 +23,20 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
   final _flutterSoloudPlugin = FlutterSoloud();
-  int soundHash = 0;
+  late SoundHash soundHash;
   late WorkerController controller;
 
   @override
   void initState() {
     super.initState();
     initPlatformState();
-    
+
     controller = WorkerController();
     controller.spawn('assets/packages/flutter_soloud/web/worker.dart.js');
+    // controller.spawn('worker.dart');
 
-    controller.onReceive().listen((event) {
-      print('worker: receive message!! $event');
+    controller.onReceive().listen((dynamic event) {
+      print('worker: receive message!! $event  ${event.runtimeType}');
     });
   }
 
@@ -81,8 +81,8 @@ class _MyAppState extends State<MyApp> {
               ),
               OutlinedButton(
                 onPressed: () async {
-                  var sound = await _flutterSoloudPlugin.loadWaveform();
-                  soundHash = sound.soundHash.hash;
+                  var sound = _flutterSoloudPlugin.loadWaveform();
+                  soundHash = sound.soundHash;
                 },
                 child: const Text('load waveform'),
               ),
@@ -99,7 +99,7 @@ class _MyAppState extends State<MyApp> {
                       fileName,
                       fileBytes!,
                     );
-                    soundHash = sound.soundHash.hash;
+                    soundHash = sound.soundHash;
                   }
                 },
                 child: const Text('load mem'),
@@ -119,7 +119,9 @@ class _MyAppState extends State<MyApp> {
               const SizedBox(height: 20),
               OutlinedButton(
                 onPressed: () {
-                  controller.sendMessage({'event': 123, 'args': 'args', 'return': 'return'});
+                  controller
+                    // .sendMessage(12345);
+                    .sendMessage({'event': 123});
                 },
                 child: const Text('WORKER'),
               ),

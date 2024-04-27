@@ -13,11 +13,12 @@ dependencies:
   flutter_web_plugins:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
-
+  logging: ^1.2.0
   meta: ^1.0.0
+  ffi: ^2.1.2
 
-  js_interop: ^3.3.0
-  js_interop_unsafe: ^3.3.0
+  # js_interop: ^3.3.0
+  # js_interop_unsafe: ^3.3.0
   path: ^1.9.0
   web: ^0.5.1
 

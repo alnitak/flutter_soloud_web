@@ -1,107 +1,55 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_soloud/audio_source.dart';
+import 'package:flutter_soloud/soloud_controller.dart';
 import 'package:flutter_soloud/sound_hash.dart';
-import 'package:flutter_soloud/bindings_player_web_ffi.dart';
 import 'package:flutter_soloud/enums.dart';
-import 'package:flutter_soloud/worker/js_import.dart';
 
 import 'flutter_soloud_platform_interface.dart';
 
+/// To be replaced by soloud.dart
 class FlutterSoloud {
-  Future<String?> getPlatformVersion() async{
-    await JSImport.import(source: 'wasm/build/libflutter_soloud_plugin.js', package: 'flutter_soloud');
+  final _controller = SoLoudController();
+  Future<String?> getPlatformVersion() async {
     return FlutterSoloudPlatform.instance.getPlatformVersion();
   }
 
   PlayerErrors init() {
-    final ret = PlayerErrors.values[JSSoloud.initEngine()];
+    final ret = _controller.soLoudFFI.initEngine();
     debugPrint('***************** INIT result: $ret');
     return ret;
   }
 
   bool isInited() {
-    return JSSoloud.isInited() == 1 ? true : false;
+    return _controller.soLoudFFI.isInited();
   }
 
   void deinit() {
-    JSSoloud.deinit();
+    _controller.soLoudFFI.deinit();
   }
 
   /// Reading a local file on web is not possible. Use [loadMem] instead
-  Future<AudioSource> loadFile(
+  AudioSource loadFile(
     String path, {
     LoadMode mode = LoadMode.memory,
-  }) async {
-    final hashPtr = JSSoloud.malloc(4); // 4 bytes for an int
-    final pathPtr = JSSoloud.malloc(path.length);
-    final result = JSSoloud.loadFile(
-      pathPtr,
-      mode == LoadMode.memory ? true : false,
-      hashPtr,
-    );
-
-    /// "*" means unsigned int 32
-    final hash = JSSoloud.getValue(hashPtr, '*');
-    JSSoloud.free(hashPtr);
-    JSSoloud.free(pathPtr);
-
-    return AudioSource(SoundHash(hash));
+  }) {
+    var ret = _controller.soLoudFFI.loadFile(path, mode);
+    return AudioSource(ret.soundHash);
   }
 
   /// On web the audio file must be loaded in memory first and then passed
   /// as [bytes].
   /// Here the [path] is used only as a reference to compute its hash.
   Future<AudioSource> loadMem(String path, Uint8List bytes) async {
-    final hashPtr = JSSoloud.malloc(4); // 4 bytes for an int
-    final bytesPtr = JSSoloud.malloc(bytes.length);
-    final pathPtr = JSSoloud.malloc(path.length);
-    for (var i = 0; i < bytes.length; i++) {
-      JSSoloud.setValue(bytesPtr + i, bytes[i], 'i8');
-    }
-    for (var i = 0; i < path.length; i++) {
-      JSSoloud.setValue(pathPtr + i, path.codeUnits[i], 'i8');
-    }
-    final result = JSSoloud.loadMem(
-      pathPtr,
-      bytesPtr,
-      bytes.length,
-      hashPtr,
-    );
-
-    /// "*" means unsigned int 32
-    final hash = JSSoloud.getValue(hashPtr, '*');
-
-    JSSoloud.free(hashPtr);
-    JSSoloud.free(bytesPtr);
-    JSSoloud.free(pathPtr);
-    debugPrint(
-        '***************** LOADMEM result: $result  hashPtr: $hashPtr  hash: $hash');
-
-    final ret = AudioSource(SoundHash(hash));
-    return ret;
+    var ret = _controller.soLoudFFI.loadMem(path, bytes);
+    return AudioSource(ret.soundHash);
   }
 
-  Future<AudioSource> loadWaveform() async {
-    final hashPtr = JSSoloud.malloc(4); // 4 bytes for an int
-    final result = JSSoloud.loadWaveform(0, true, 0.25, 1, hashPtr);
-
-    /// "*" means unsigned int 32
-    var hash = JSSoloud.getValue(hashPtr, '*');
-    debugPrint(
-        '***************** WAVEFORM result: $result  hashPtr: $hashPtr  hash: $hash');
-    JSSoloud.free(hashPtr);
-    return AudioSource(SoundHash(hash));
+  AudioSource loadWaveform() {
+    final ret = _controller.soLoudFFI.loadWaveform(WaveForm.fSaw, true, 0.25, 1);
+    return AudioSource(ret.soundHash);
   }
 
-  void play(int soundHash) {
-    final handlePtr = JSSoloud.malloc(4); // 4 bytes for an int
-    final result =
-        JSSoloud.play(soundHash, 0.2, 0.0, false, true, 0.0, handlePtr);
-
-    /// "*" means unsigned int 32
-    final handle = JSSoloud.getValue(handlePtr, '*');
-    debugPrint('***************** PLAY soundHash: $soundHash  result: $result  '
-        'handlePtr: $handlePtr  handle: $handle');
-    JSSoloud.free(handlePtr);
+  void play(SoundHash soundHash) {
+    _controller.soLoudFFI.play(soundHash);
   }
 }
