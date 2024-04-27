@@ -109,22 +109,22 @@ extern "C"
         return (PlayerErrors)player.get()->loadFile(completeFileName, loadIntoMem, *hash);
     }
 
-    /// Load a new sound stored into [mem] to be played once or multiple times later.
+    /// Load a new sound stored into [buffer] to be played once or multiple times later.
     /// Mainly used on web because the browsers are not allowed to read files directly.
     ///
     /// [uniqueName] the unique name of the sound. Used only to have the [hash].
-    /// [mem] the audio data. These contains the audio file bytes.
-    /// [length] the length of [mem].
+    /// [buffer] the audio data. These contains the audio file bytes.
+    /// [length] the length of [buffer].
     /// [hash] return the hash of the sound.
     FFI_PLUGIN_EXPORT enum PlayerErrors loadMem(
         char *uniqueName, 
-        unsigned char *mem, 
+        unsigned char *buffer, 
         int length,
         unsigned int *hash)
     {
         if (!player.get()->isInited())
             return backendNotInited;
-        return (PlayerErrors)player.get()->loadMem(uniqueName, mem, length, *hash);
+        return (PlayerErrors)player.get()->loadMem(uniqueName, buffer, length, *hash);
     }
 
     /// Load a new waveform to be played once or multiple times later
