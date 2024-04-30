@@ -1,3 +1,5 @@
+import 'send_port.dart';
+
 abstract class Worker {
   void sendMessage(dynamic message);
   Stream<dynamic> onReceive();
@@ -9,4 +11,3 @@ abstract class WorkerController {
   Stream<dynamic> onReceive();
   void kill();
 }
-

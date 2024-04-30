@@ -45,7 +45,7 @@ class WorkerController implements base.WorkerController {
     //   [],
     //   controller._receivePort.sendPort,
     // );
-    var isolate = await iso.Isolate.spawn<base.WorkerController?>(doJob, controller);
+    var isolate = await iso.Isolate.spawn(doJob, controller._receivePort.sendPort);
     controller._isolate = isolate;
     return controller;
   }
