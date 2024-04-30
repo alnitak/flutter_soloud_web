@@ -1,2 +1,2 @@
  # -O4
-dart compile js -o worker.dart.js ../lib/worker.dart
+dart compile js -o audio_isolate.dart.js ../lib/audio_isolate.dart

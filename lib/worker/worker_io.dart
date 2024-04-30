@@ -1,40 +1,53 @@
+import 'package:flutter_soloud/audio_isolate.dart';
+
 import 'worker.dart' as base;
 import 'dart:async';
 import 'dart:isolate' as iso;
 
-
 class Worker implements base.Worker {
   late iso.SendPort _sendPort;
   late iso.ReceivePort _receivePort;
-  Worker(_sendPort) {
+
+  Worker({dynamic args}) {
+    // assert(args is iso.SendPort, 'args must be SendPort!');
+    _sendPort = args as iso.SendPort;
     _receivePort = iso.ReceivePort();
     _sendPort.send(_receivePort.sendPort);
   }
 
   @override
-  void sendMessage(dynamic message) { 
+  void sendMessage(dynamic message) {
     _sendPort.send(message);
   }
 
   @override
-  Stream<dynamic> onReceive()=> _receivePort;
+  Stream<dynamic> onReceive() {
+    return _receivePort;
+  }
 }
 
 class WorkerController implements base.WorkerController {
   bool _initialized = false;
   late iso.ReceivePort _receivePort;
   iso.Isolate? _isolate;
-  iso.SendPort?  _sendPort;
+  iso.SendPort? _sendPort;
   late StreamController<dynamic> _outputController;
   late StreamController<dynamic> _inputController;
   late Completer<void> _initializedCompleter;
   List<dynamic> messageCache = [];
   bool get initialized => _initialized;
 
-  @override
-  void spawn(String path) async  {
-    _isolate =  await iso.Isolate.spawnUri(
-        Uri.file(path), [], _receivePort.sendPort);
+  static Future<WorkerController> spawn(String path) async {
+    var controller = WorkerController();
+    // var uri = Uri.parse(path);
+    // var isolate = await iso.Isolate.spawnUri(
+    //   uri,
+    //   [],
+    //   controller._receivePort.sendPort,
+    // );
+    var isolate = await iso.Isolate.spawn<base.WorkerController?>(doJob, controller);
+    controller._isolate = isolate;
+    return controller;
   }
 
   @override
@@ -52,34 +65,36 @@ class WorkerController implements base.WorkerController {
     _receivePort = iso.ReceivePort();
 
     _receivePort.listen((message) {
-      if(initialized) {
+      if (initialized) {
         _outputController.add(message);
         return;
       }
-      if(message is iso.SendPort) {
+      if (message is iso.SendPort) {
         _sendPort = message;
-        for(var m in messageCache) {
+        for (var m in messageCache) {
           _sendPort?.send(m);
         }
         _initialized = true;
         _initializedCompleter.complete();
       }
-    }, onError: (e){
+    }, onError: (e) {
       _outputController.addError(e);
-    }); 
+    });
   }
 
   @override
-  void sendMessage(dynamic message) { 
-    if(!_initialized) {
+  void sendMessage(dynamic message) {
+    if (!_initialized) {
       messageCache.add(message);
     } else {
-      _inputController.add(message);
+      _outputController.add(message);
     }
   }
 
   @override
-  Stream<dynamic> onReceive() => _outputController.stream;
+  Stream<dynamic> onReceive() {
+    return _inputController.stream;
+  }
 
   @override
   void kill() {

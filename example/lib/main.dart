@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -21,44 +24,20 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
   final _flutterSoloudPlugin = FlutterSoloud();
   late SoundHash soundHash;
   late WorkerController controller;
 
-  @override
-  void initState() {
-    super.initState();
-    initPlatformState();
-
+  Future<void> initWorker() async {
     controller = WorkerController();
-    controller.spawn('assets/packages/flutter_soloud/web/worker.dart.js');
-    // controller.spawn('worker.dart');
-
-    controller.onReceive().listen((dynamic event) {
-      print('worker: receive message!! $event  ${event.runtimeType}');
-    });
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
-    try {
-      platformVersion = await _flutterSoloudPlugin.getPlatformVersion() ??
-          'Unknown platform version';
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
+    if (kIsWeb) {
+      controller = await WorkerController.spawn('assets/packages/flutter_soloud/web/audio_isolate.dart.js');
+    } else {
+      controller = await WorkerController.spawn('/home/deimos/FLUTTER/tmp/flutter_soloud/lib/audio_isolate.dart');
     }
 
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
+    controller.onReceive().listen((dynamic event) {
+      print('receive message from audio_isolate!! $event  ${event.runtimeType}');
     });
   }
 
@@ -72,7 +51,6 @@ class _MyAppState extends State<MyApp> {
         body: Center(
           child: Column(
             children: [
-              Text('Running on: $_platformVersion\n'),
               OutlinedButton(
                 onPressed: () {
                   _flutterSoloudPlugin.init();
@@ -88,19 +66,28 @@ class _MyAppState extends State<MyApp> {
               ),
               OutlinedButton(
                 onPressed: () async {
-                  final result = await FilePicker.platform
-                      .pickFiles(type: FileType.any, allowMultiple: false);
+                  if (kIsWeb) {
+                    final result = await FilePicker.platform
+                        .pickFiles(type: FileType.any, allowMultiple: false);
 
-                  if (result != null && result.files.isNotEmpty) {
-                    final fileBytes = result.files.first.bytes;
-                    final fileName = result.files.first.name;
+                    if (result != null && result.files.isNotEmpty) {
+                      final fileName = result.files.first.name;
+                      final fileBytes = result.files.first.bytes;
 
+                      var sound = await _flutterSoloudPlugin.loadMem(
+                        fileName,
+                        fileBytes!,
+                      );
+                      soundHash = sound.soundHash;
+                    }
+                  } else {
                     var sound = await _flutterSoloudPlugin.loadMem(
-                      fileName,
-                      fileBytes!,
-                    );
-                    soundHash = sound.soundHash;
+                        '/home/deimos/5/12.-Animal Instinct.flac',
+                        File('/home/deimos/5/12.-Animal Instinct.flac').readAsBytesSync(),
+                      );
+                      soundHash = sound.soundHash;
                   }
+                  print('****** FILE LOADED $soundHash');
                 },
                 child: const Text('load mem'),
               ),
@@ -118,12 +105,18 @@ class _MyAppState extends State<MyApp> {
               ),
               const SizedBox(height: 20),
               OutlinedButton(
+                onPressed: () async {
+                  await initWorker();
+                },
+                child: const Text('INIT WORKER'),
+              ),
+              OutlinedButton(
                 onPressed: () {
                   controller
-                    // .sendMessage(12345);
-                    .sendMessage({'event': 123});
+                      // .sendMessage(12345);
+                      .sendMessage({'event': 123});
                 },
-                child: const Text('WORKER'),
+                child: const Text('SEND WORKER MSG'),
               ),
             ],
           ),

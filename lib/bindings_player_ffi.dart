@@ -187,7 +187,7 @@ class FlutterSoLoudFfi {
     final e = _loadMem(
       uniqueName.toNativeUtf8().cast<ffi.Char>(),
       bufferPtr,
-      uniqueName.length,
+      buffer.length,
       hash,
     );
     final soundHash = SoundHash(hash.value);

@@ -32,12 +32,14 @@ dev_dependencies:
 flutter:
   plugin:
     platforms:
+      linux:
+        ffiPlugin: true
       web:
         pluginClass: FlutterSoloudWeb
         fileName: flutter_soloud_web.dart
 
   assets:
-    - web/worker.dart.js
+    - web/audio_isolate.dart.js
     - wasm/build/libflutter_soloud_plugin.js
     - wasm/build/libflutter_soloud_plugin.wasm
   

@@ -31,7 +31,7 @@ Stream<T> callbackToStream<J, T>(
 class Worker implements base.Worker {
   late StreamController<dynamic> _outputController;
 
-  Worker() {
+  Worker({dynamic args}) {
     _outputController = StreamController();
     callbackToStream(globalScopeSelf, 'onmessage', (web.MessageEvent e) {
       _outputController.add(getProperty(e, 'data'));
@@ -51,15 +51,16 @@ class WorkerController implements base.WorkerController {
   web.Worker? _worker;
   StreamController<dynamic>? _outputController;
 
-  @override
-  void spawn(String path) async {
-    _outputController = StreamController();
+  static Future<WorkerController> spawn(String path) async {
+    var controller = WorkerController();
+    controller._outputController = StreamController();
     path = (path.endsWith('.dart') ? '$path.js' : path);
-    _worker = web.Worker(path);
+    controller._worker = web.Worker(path);
 
-    _worker?.onmessage = (((web.MessageEvent event) {
-      _outputController?.add(event.data.dartify());
+    controller._worker?.onmessage = (((web.MessageEvent event) {
+      controller._outputController?.add(event.data.dartify());
     })).toJS;
+    return controller;
   }
 
   @override

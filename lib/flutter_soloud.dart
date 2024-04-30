@@ -45,11 +45,13 @@ class FlutterSoloud {
   }
 
   AudioSource loadWaveform() {
-    final ret = _controller.soLoudFFI.loadWaveform(WaveForm.fSaw, true, 0.25, 1);
+    final ret =
+        _controller.soLoudFFI.loadWaveform(WaveForm.fSaw, true, 0.25, 1);
     return AudioSource(ret.soundHash);
   }
 
   void play(SoundHash soundHash) {
-    _controller.soLoudFFI.play(soundHash);
+    var ret = _controller.soLoudFFI.play(soundHash);
+    print('PLAY $ret');
   }
 }
