@@ -3826,7 +3826,7 @@
     StringBuffer: function StringBuffer(t0) {
       this._contents = t0;
     },
-    doJob(controller) {
+    doJob(port) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.void),
         worker, t1, i;
@@ -3838,7 +3838,7 @@
             case 0:
               // Function start
               A.print("Worker created.\n");
-              worker = A.Worker$();
+              worker = A.Worker$(port);
               t1 = worker.__Worker__outputController_A;
               t1 === $ && A.throwLateFieldNI("_outputController");
               new A._ControllerStream(t1, A._instanceType(t1)._eval$1("_ControllerStream<1>")).listen$1(new A.doJob_closure(worker));
@@ -3883,9 +3883,9 @@
       object[$name] = A.allowInterop(new A.callbackToStream_closure(controller, unwrapValue, $J), $J._eval$1("Null(0)"));
       return new A._BroadcastStream(controller, t1._eval$1("_BroadcastStream<1>"));
     },
-    Worker$() {
+    Worker$(args) {
       var t1 = new A.Worker();
-      t1.Worker$1$args(null);
+      t1.Worker$1$args(args);
       return t1;
     },
     callbackToStream_closure: function callbackToStream_closure(t0, t1, t2) {

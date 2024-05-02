@@ -129,6 +129,9 @@ file:///home/deimos/.pub-cache/hosted/pub.dev/web-0.5.1/lib/src/helpers/renames.
 file:///home/deimos/.pub-cache/hosted/pub.dev/web-0.5.1/lib/web.dart
 file:///home/deimos/FLUTTER/tmp/flutter_soloud/.dart_tool/package_config.json
 file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/audio_isolate.dart
+file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/worker/send_port.dart
+file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/worker/send_port_io.dart
+file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/worker/send_port_web.dart
 file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/worker/worker.dart
 file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/worker/worker_web.dart
 file:///home/deimos/dev/flutter/bin/cache/dart-sdk/lib/_internal/dart2js_platform.dill

@@ -33,7 +33,7 @@ class _MyAppState extends State<MyApp> {
     if (kIsWeb) {
       controller = await WorkerController.spawn('assets/packages/flutter_soloud/web/audio_isolate.dart.js');
     } else {
-      controller = await WorkerController.spawn('/home/deimos/FLUTTER/tmp/flutter_soloud/lib/audio_isolate.dart');
+      controller = await WorkerController.spawn('');
     }
 
     controller.onReceive().listen((dynamic event) {

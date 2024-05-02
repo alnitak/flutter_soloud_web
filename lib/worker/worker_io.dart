@@ -45,7 +45,8 @@ class WorkerController implements base.WorkerController {
     //   [],
     //   controller._receivePort.sendPort,
     // );
-    var isolate = await iso.Isolate.spawn(doJob, controller._receivePort.sendPort);
+    var isolate =
+        await iso.Isolate.spawn(doJob, controller._receivePort.sendPort);
     controller._isolate = isolate;
     return controller;
   }
@@ -73,6 +74,7 @@ class WorkerController implements base.WorkerController {
         _sendPort = message;
         for (var m in messageCache) {
           _sendPort?.send(m);
+          _outputController.add(message);
         }
         _initialized = true;
         _initializedCompleter.complete();
@@ -84,9 +86,11 @@ class WorkerController implements base.WorkerController {
 
   @override
   void sendMessage(dynamic message) {
+    print('_initialized: $_initialized');
     if (!_initialized) {
       messageCache.add(message);
     } else {
+      // _sendPort?.send(message);
       _outputController.add(message);
     }
   }

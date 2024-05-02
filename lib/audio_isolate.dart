@@ -4,7 +4,7 @@ import 'package:flutter_soloud/worker/worker_web.dart'
 
 void doJob(SendPort? port) async {
   print('Worker created.\n');
-  var worker = kIsWeb ? Worker() : Worker(args: port);
+  var worker = Worker(args: port);
   worker.onReceive().listen((dynamic data) {
     print('audio_isolate: onMessage $data  ${data.runtimeType}\n');
     worker.sendMessage(data);
