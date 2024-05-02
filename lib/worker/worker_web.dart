@@ -64,7 +64,7 @@ class WorkerController implements base.WorkerController {
   }
 
   @override
-  Future waitByInitialized() {
+  Future waitInitialized() {
     throw UnimplementedError();
   }
 

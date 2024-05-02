@@ -9,7 +9,7 @@ class Worker implements base.Worker {
   late iso.ReceivePort _receivePort;
 
   Worker({dynamic args}) {
-    // assert(args is iso.SendPort, 'args must be SendPort!');
+    assert(args is iso.SendPort, 'args must be SendPort!');
     _sendPort = args as iso.SendPort;
     _receivePort = iso.ReceivePort();
     _sendPort.send(_receivePort.sendPort);
@@ -52,7 +52,7 @@ class WorkerController implements base.WorkerController {
   }
 
   @override
-  Future<void> waitByInitialized() async {
+  Future<void> waitInitialized() async {
     if (initialized) {
       return;
     }
@@ -90,14 +90,15 @@ class WorkerController implements base.WorkerController {
     if (!_initialized) {
       messageCache.add(message);
     } else {
-      // _sendPort?.send(message);
-      _outputController.add(message);
+      _sendPort?.send(message);
+      // _outputController.add(message);
     }
   }
 
   @override
   Stream<dynamic> onReceive() {
-    return _inputController.stream;
+    // return _inputController.stream;
+    return _outputController.stream;
   }
 
   @override
