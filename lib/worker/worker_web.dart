@@ -71,9 +71,10 @@ class WorkerController implements base.WorkerController {
   @override
   void sendMessage(dynamic message) {
     if (message is Map) {
-      _worker?.postMessage(mapToJsObject(message).jsify());
+      _worker?.postMessage(mapToJsObject(message));
+      // _worker?.postMessage(message.jsify());
     } else {
-      _worker?.postMessage(message);
+      _worker?.postMessage(message.jsify());
     }
     // _worker?.postMessage(message.jsify());
   }
@@ -88,7 +89,7 @@ class WorkerController implements base.WorkerController {
     _worker?.terminate();
   }
 
-  Object mapToJsObject(Map map) {
+  JSObject mapToJsObject(Map map) {
     var object = newObject();
     map.forEach((k, v) {
       if (v is Map) {
@@ -100,3 +101,31 @@ class WorkerController implements base.WorkerController {
     return object;
   }
 }
+
+
+
+// Map jsObjectToMap(JSAny jsObject) {
+//   final Map result = {};
+//   final List keys = _objectKeys(jsObject);
+//   for (final dynamic key in keys) {
+//     final JSAny value = getProperty(jsObject, key);
+//     List nestedKeys = [];
+//     if (value is JSArray) {
+//       nestedKeys = objectKeys(value);
+//     }
+//     if (nestedKeys.isNotEmpty) {
+//       //nested property
+//       result[key] = jsObjectToMap(value);
+//     } else {
+//       result[key] = value;
+//     }
+//   }
+//   return result;
+// }
+
+// JsArray<JSString> objectKeys(JSAny jsObject) {
+//   return _objectKeys(jsObject);
+// }
+
+// @JS('Object.keys')
+// external JsArray<JSString> _objectKeys(jsObject);
