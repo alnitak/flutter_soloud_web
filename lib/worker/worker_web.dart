@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 import 'dart:js_util';
-import 'dart:convert' show jsonDecode;
+import 'dart:convert' show jsonDecode, jsonEncode;
 
 import 'worker.dart' as base;
 // import 'dart:html' as html;
@@ -70,13 +70,23 @@ class WorkerController implements base.WorkerController {
 
   @override
   void sendMessage(dynamic message) {
-    if (message is Map) {
-      _worker?.postMessage(mapToJsObject(message));
-      // _worker?.postMessage(message.jsify());
-    } else {
-      _worker?.postMessage(message.jsify());
+    switch (message) {
+      case Map():
+        final mapEncoded = jsonEncode(message);
+        _worker?.postMessage(mapEncoded.jsify());
+      case num():
+        _worker?.postMessage(message.toJS);
+      case String():
+        _worker?.postMessage(message.toJS);
+      default:
+        try {
+          final messageJsifyed = message.jsify();
+          _worker?.postMessage(messageJsifyed);
+        } catch (e) {
+          throw UnsupportedError(
+              'sendMessage(): Type ${message.runtimeType} unsupported');
+        }
     }
-    // _worker?.postMessage(message.jsify());
   }
 
   @override
@@ -89,20 +99,18 @@ class WorkerController implements base.WorkerController {
     _worker?.terminate();
   }
 
-  JSObject mapToJsObject(Map map) {
-    var object = newObject();
-    map.forEach((k, v) {
-      if (v is Map) {
-        setProperty(object, k, mapToJsObject(v));
-      } else {
-        setProperty(object, k, v);
-      }
-    });
-    return object;
-  }
+  // JSObject mapToJsObject(Map map) {
+  //   var object = newObject();
+  //   map.forEach((k, v) {
+  //     if (v is Map) {
+  //       setProperty(object, k, mapToJsObject(v));
+  //     } else {
+  //       setProperty(object, k, v);
+  //     }
+  //   });
+  //   return object;
+  // }
 }
-
-
 
 // Map jsObjectToMap(JSAny jsObject) {
 //   final Map result = {};

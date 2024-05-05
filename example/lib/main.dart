@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:flutter_soloud/sound_hash.dart';
 
@@ -113,10 +112,23 @@ class _MyAppState extends State<MyApp> {
               OutlinedButton(
                 onPressed: () {
                   controller
-                      // .sendMessage(12345);
                       .sendMessage({'event': 123});
                 },
-                child: const Text('SEND WORKER MSG'),
+                child: const Text('SEND Map()'),
+              ),
+              OutlinedButton(
+                onPressed: () {
+                  controller
+                      .sendMessage(1.2345);
+                },
+                child: const Text('SEND Double'),
+              ),
+              OutlinedButton(
+                onPressed: () {
+                  controller
+                      .sendMessage('CIAO');
+                },
+                child: const Text('SEND String'),
               ),
             ],
           ),

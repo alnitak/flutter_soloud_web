@@ -39,12 +39,6 @@ class WorkerController implements base.WorkerController {
 
   static Future<WorkerController> spawn(String path) async {
     var controller = WorkerController();
-    // var uri = Uri.parse(path);
-    // var isolate = await iso.Isolate.spawnUri(
-    //   uri,
-    //   [],
-    //   controller._receivePort.sendPort,
-    // );
     var isolate =
         await iso.Isolate.spawn(doJob, controller._receivePort.sendPort);
     controller._isolate = isolate;
@@ -86,7 +80,6 @@ class WorkerController implements base.WorkerController {
 
   @override
   void sendMessage(dynamic message) {
-    print('_initialized: $_initialized');
     if (!_initialized) {
       messageCache.add(message);
     } else {
