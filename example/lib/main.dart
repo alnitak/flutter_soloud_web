@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:flutter_soloud/sound_hash.dart';
 import 'package:flutter_soloud/enums.dart';
+import 'package:flutter_soloud/worker/js_import.dart';
 
 import 'package:flutter_soloud/worker/worker_web.dart'
     if (dart.library.io) 'package:flutter_soloud/worker/worker_io.dart';
@@ -31,7 +32,6 @@ class _MyAppState extends State<MyApp> {
   late WorkerController controller;
 
   Future<void> initWorker() async {
-        
     controller = WorkerController();
     if (kIsWeb) {
       controller = await WorkerController.spawn(
@@ -59,19 +59,19 @@ class _MyAppState extends State<MyApp> {
         body: Center(
           child: Column(
             children: [
-              // OutlinedButton(
-              //   onPressed: () {
-              //     _flutterSoloudPlugin.init();
-              //   },
-              //   child: const Text('init'),
-              // ),
-              // OutlinedButton(
-              //   onPressed: () async {
-              //     var sound = _flutterSoloudPlugin.loadWaveform();
-              //     soundHash = sound.soundHash;
-              //   },
-              //   child: const Text('load waveform'),
-              // ),
+              OutlinedButton(
+                onPressed: () async {
+                  _flutterSoloudPlugin.init();
+                },
+                child: const Text('init'),
+              ),
+              OutlinedButton(
+                onPressed: () async {
+                  var sound = _flutterSoloudPlugin.loadWaveform();
+                  soundHash = sound.soundHash;
+                },
+                child: const Text('load waveform'),
+              ),
               // OutlinedButton(
               //   onPressed: () async {
               //     if (kIsWeb) {
@@ -100,19 +100,19 @@ class _MyAppState extends State<MyApp> {
               //   },
               //   child: const Text('load mem'),
               // ),
-              // OutlinedButton(
-              //   onPressed: () {
-              //     _flutterSoloudPlugin.play(soundHash);
-              //   },
-              //   child: const Text('play'),
-              // ),
-              // OutlinedButton(
-              //   onPressed: () {
-              //     _flutterSoloudPlugin.deinit();
-              //   },
-              //   child: const Text('dispose'),
-              // ),
-              // const SizedBox(height: 20),
+              OutlinedButton(
+                onPressed: () {
+                  _flutterSoloudPlugin.play(soundHash);
+                },
+                child: const Text('play'),
+              ),
+              OutlinedButton(
+                onPressed: () {
+                  _flutterSoloudPlugin.deinit();
+                },
+                child: const Text('dispose'),
+              ),
+              const SizedBox(height: 20),
               OutlinedButton(
                 onPressed: () async {
                   await initWorker();
@@ -138,7 +138,7 @@ class _MyAppState extends State<MyApp> {
                 },
                 child: const Text('SEND String'),
               ),
-              
+
               const SizedBox(height: 20),
               OutlinedButton(
                 onPressed: () {

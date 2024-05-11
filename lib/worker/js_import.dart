@@ -25,23 +25,30 @@ class JSImport {
       return;
     }
 
-    var p = web.document;
-    var c = web.document.head;
-
-    print('################ JSImport()3  $c  ------');
-    final web.Element head = _headElement();
-    final web.HTMLScriptElement libraryElement = web.HTMLScriptElement()
-      ..type = type ?? "text/javascript"
-      ..charset = "utf-8"
-      ..defer = async
-      ..async = async
-      ..src = source;
-    print('################ JSImport()4');
-    head.appendChild(libraryElement);
-    print('################ JSImport()5');
-    await libraryElement.onLoad.first;
-    importedSources.add(source);
-    print('################ JSImport()6  $importedSources');
+    try {
+      print('################ JSImport()3  ------');
+      final web.Element head = _headElement();
+      final web.HTMLScriptElement libraryElement = web.HTMLScriptElement()
+        ..type = type ?? "text/javascript"
+        ..charset = "utf-8"
+        ..defer = async
+        ..async = async
+        ..src = source;
+      print('################ JSImport()4');
+      head.appendChild(libraryElement);
+      print('################ JSImport()5');
+      await libraryElement.onLoad.first;
+      importedSources.add(source);
+      print('################ JSImport()6  $importedSources');
+    } catch (e) {
+      final web.HTMLScriptElement libraryElement = web.HTMLScriptElement()
+        ..type = type ?? "text/javascript"
+        ..charset = "utf-8"
+        ..defer = async
+        ..async = async
+        ..src = source;
+      print('################ JSImport() CATCH  $libraryElement  ------');
+    }
   }
 
   static bool isImported({

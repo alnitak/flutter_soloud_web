@@ -6202,55 +6202,105 @@
       return $T._as(o[method].apply(o, args));
     },
     JSImport_import($package, source) {
+      var async = true,
+        type = null;
+      return A.JSImport_import$body($package, source);
+    },
+    JSImport_import$body($package, source) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.void),
-        $async$returnValue, t1, t2, t3, head, _this;
+        $async$returnValue, $async$handler = 2, $async$currentError, head, libraryElement, libraryElement0, t1, source0, t2, head0, _this, exception, async, type, $async$exception;
       var $async$JSImport_import = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
-        if ($async$errorCode === 1)
-          return A._asyncRethrow($async$result, $async$completer);
+        if ($async$errorCode === 1) {
+          $async$currentError = $async$result;
+          $async$goto = $async$handler;
+        }
         while (true)
           switch ($async$goto) {
             case 0:
               // Function start
+              async = true;
+              type = null;
+              source = source;
               A.print("################ JSImport()1  " + A.S($.JSImport_importedSources));
-              source = $.$get$context().normalize$1("assets/packages/" + $package + "/" + source);
-              A.print("#####@@@########### JSImport()2  " + source + " ---");
+              t1 = A.S(source);
+              source0 = $.$get$context().normalize$1("assets/packages/" + $package + "/" + t1);
+              source = source0;
+              A.print("#####@@@########### JSImport()2  " + A.S(source) + " ---");
               if (B.JSArray_methods.contains$1($.JSImport_importedSources, source)) {
                 A.print("#####@@@########### JSImport()  isImported: true ---");
                 // goto return
                 $async$goto = 1;
                 break;
               }
+              $async$handler = 4;
+              A.print("################ JSImport()3  ------");
+              A.print("#####@@@########### JSImport()_headElement-1");
               t1 = self;
               t2 = type$.JSObject;
-              t2._as(t1.document);
-              t3 = type$.nullable_JSObject;
-              A.print("################ JSImport()3  " + A.S(t3._as(t2._as(t1.document).head)) + "  ------");
-              A.print("#####@@@########### JSImport()_headElement-1");
-              head = t3._as(t2._as(t1.document).querySelector("head"));
-              A.print("#####@@@########### JSImport()_headElement-2  " + A.S(head));
-              if (head == null) {
+              head0 = type$.nullable_JSObject._as(t2._as(t1.document).querySelector("head"));
+              A.print("#####@@@########### JSImport()_headElement-2  " + A.S(head0));
+              if (head0 == null) {
                 A.print("#####@@@########### JSImport()_headElement-3");
                 A.throwExpression(A.StateError$("Could not fetch html head element!"));
               }
+              head = head0;
               _this = t2._as(t2._as(t1.document).createElement("script"));
-              _this.type = "text/javascript";
+              t1 = type;
+              if (t1 == null)
+                t1 = "text/javascript";
+              _this.type = t1;
               _this.charset = "utf-8";
-              _this.defer = true;
-              _this.async = true;
+              _this.defer = async;
+              _this.async = async;
               _this.src = source;
+              libraryElement = _this;
               A.print("################ JSImport()4");
-              A.callMethod(head, "appendChild", [_this], t2);
+              A.callMethod(head, "appendChild", [libraryElement], t2);
               A.print("################ JSImport()5");
-              $async$goto = 3;
-              return A._asyncAwait(new A._ElementEventStreamImpl(_this, "load", false, type$._ElementEventStreamImpl_JSObject).get$first(0), $async$JSImport_import);
-            case 3:
+              $async$goto = 7;
+              return A._asyncAwait(new A._ElementEventStreamImpl(libraryElement, "load", false, type$._ElementEventStreamImpl_JSObject).get$first(0), $async$JSImport_import);
+            case 7:
               // returning from await.
               B.JSArray_methods.add$1($.JSImport_importedSources, source);
               A.print("################ JSImport()6  " + A.S($.JSImport_importedSources));
+              $async$handler = 2;
+              // goto after finally
+              $async$goto = 6;
+              break;
+            case 4:
+              // catch
+              $async$handler = 3;
+              $async$exception = $async$currentError;
+              t1 = self;
+              t2 = type$.JSObject;
+              _this = t2._as(t2._as(t1.document).createElement("script"));
+              t1 = type;
+              if (t1 == null)
+                t1 = "text/javascript";
+              _this.type = t1;
+              _this.charset = "utf-8";
+              _this.defer = async;
+              _this.async = async;
+              _this.src = source;
+              libraryElement0 = _this;
+              A.print("################ JSImport() CATCH  " + A.S(libraryElement0) + "  ------");
+              // goto after finally
+              $async$goto = 6;
+              break;
+            case 3:
+              // uncaught
+              // goto rethrow
+              $async$goto = 2;
+              break;
+            case 6:
+              // after finally
             case 1:
               // return
               return A._asyncReturn($async$returnValue, $async$completer);
+            case 2:
+              // rethrow
+              return A._asyncRethrow($async$currentError, $async$completer);
           }
       });
       return A._asyncStartSync($async$JSImport_import, $async$completer);

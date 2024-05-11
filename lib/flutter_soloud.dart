@@ -13,11 +13,11 @@ class FlutterSoloud {
     return FlutterSoloudPlatform.instance.getPlatformVersion();
   }
 
-  PlayerErrors init() {
-    // final ret = _controller.soLoudFFI.initEngine();
-    // debugPrint('***************** INIT result: $ret');
-    // return ret;
-    return PlayerErrors.noError;
+  int init() {
+    final ret = _controller.soLoudFFI.initEngine();
+    debugPrint('***************** INIT result: $ret');
+    return ret;
+    // return PlayerErrors.noError;
   }
 
   bool isInited() {
