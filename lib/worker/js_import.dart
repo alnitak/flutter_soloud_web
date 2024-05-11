@@ -2,6 +2,8 @@ import 'package:web/web.dart' as web;
 import 'package:path/path.dart' as path;
 
 class JSImport {
+  static List<String> importedSources = [];
+
   static Future<void> import({
     required String source,
     String? package,
@@ -9,45 +11,63 @@ class JSImport {
     bool async = true,
     String? type,
   }) async {
-    source = package == null 
-      ? source 
-      : path.normalize("assets/packages/$package/$source");
-    if (isImported(source: source)) {
+    print('################ JSImport()1  $importedSources');
+    source = package == null
+        ? source
+        : path.normalize("assets/packages/$package/$source");
+    print('#####@@@########### JSImport()2  $source ---');
+    // if (isImported(source: source, package: package)) {
+    //   print('#####@@@########### JSImport()  isImported: true ---');
+    //   return;
+    // }
+    if (importedSources.contains(source)) {
+      print('#####@@@########### JSImport()  isImported: true ---');
       return;
     }
+
+    var p = web.document;
+    var c = web.document.head;
+
+    print('################ JSImport()3  $c  ------');
     final web.Element head = _headElement();
     final web.HTMLScriptElement libraryElement = web.HTMLScriptElement()
-        ..type = type ?? "text/javascript"
-        ..charset = "utf-8"
-        ..defer = async
-        ..async = async
-        ..src = source;
+      ..type = type ?? "text/javascript"
+      ..charset = "utf-8"
+      ..defer = async
+      ..async = async
+      ..src = source;
+    print('################ JSImport()4');
     head.appendChild(libraryElement);
+    print('################ JSImport()5');
     await libraryElement.onLoad.first;
+    importedSources.add(source);
+    print('################ JSImport()6  $importedSources');
   }
 
   static bool isImported({
     required String source,
     String? package,
   }) {
-    // source = _packageUrl(source, package);
+    print('#####@@@########### JSImport()isImported-1  $source $package ---');
+    source = package == null
+        ? source
+        : path.normalize("assets/packages/$package/$source");
 
-    source = package == null 
-      ? source 
-      : path.normalize("assets/packages/$package/$source");
-
+    print('#####@@@########### JSImport()isImported-2');
     final web.Element head = _headElement();
+    print('#####@@@########### JSImport()isImported-3');
     return head.querySelector('[src\$="$source"]') != null;
   }
 
   static web.Element _headElement() {
+    print('#####@@@########### JSImport()_headElement-1');
     web.Element? head = web.document.querySelector("head");
+    print('#####@@@########### JSImport()_headElement-2  $head');
     if (head == null) {
+      print('#####@@@########### JSImport()_headElement-3');
       throw StateError("Could not fetch html head element!");
     }
 
     return head;
   }
-
-
 }

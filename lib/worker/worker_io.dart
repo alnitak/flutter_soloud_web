@@ -40,7 +40,7 @@ class WorkerController implements base.WorkerController {
   static Future<WorkerController> spawn(String path) async {
     var controller = WorkerController();
     var isolate =
-        await iso.Isolate.spawn(doJob, controller._receivePort.sendPort);
+        await iso.Isolate.spawn(audioIsolate, controller._receivePort.sendPort);
     controller._isolate = isolate;
     return controller;
   }

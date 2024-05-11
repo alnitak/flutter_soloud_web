@@ -14,9 +14,10 @@ class FlutterSoloud {
   }
 
   PlayerErrors init() {
-    final ret = _controller.soLoudFFI.initEngine();
-    debugPrint('***************** INIT result: $ret');
-    return ret;
+    // final ret = _controller.soLoudFFI.initEngine();
+    // debugPrint('***************** INIT result: $ret');
+    // return ret;
+    return PlayerErrors.noError;
   }
 
   bool isInited() {
@@ -47,7 +48,7 @@ class FlutterSoloud {
   AudioSource loadWaveform() {
     final ret =
         _controller.soLoudFFI.loadWaveform(WaveForm.fSaw, true, 0.25, 1);
-    return AudioSource(ret.soundHash);
+    return AudioSource(ret['soundHash'] as SoundHash);
   }
 
   void play(SoundHash soundHash) {

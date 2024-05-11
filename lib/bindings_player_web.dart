@@ -78,13 +78,10 @@ external int _loadWaveform(
 external int _play(int soundHash, double volume, double pan, bool paused,
     bool looping, double loopingStartAt, int handlePtr);
 
-class JSSoloud {
-  // JSSoloud._();
-
+class JSSoloudPlayer {
   int malloc(int bytesCount) => _malloc(bytesCount);
 
-  int getValue(int ptrAddress, String type) =>
-      _getValue(ptrAddress, type);
+  int getValue(int ptrAddress, String type) => _getValue(ptrAddress, type);
 
   void setValue(int ptrAddress, int value, String type) =>
       _setValue(ptrAddress, value, type);
@@ -106,7 +103,10 @@ class JSSoloud {
   ) =>
       _ccall(fName, returnType, argTypes, args);
 
-  PlayerErrors initEngine() => PlayerErrors.values[_initEngine()];
+  int initEngine() {
+    print('[[[[[[[[[[[[]]]]]]]]]]]] initEngine()  $initEngine');
+    return _initEngine();
+  }
 
   void deinit() => _dispose();
 
@@ -166,7 +166,7 @@ class JSSoloud {
     return ret;
   }
 
-  ({PlayerErrors error, SoundHash soundHash}) loadWaveform(
+  Map<String, dynamic> loadWaveform(
     WaveForm waveform,
     bool superWave,
     double scale,
@@ -184,7 +184,7 @@ class JSSoloud {
     /// "*" means unsigned int 32
     var hash = getValue(hashPtr, '*');
     final soundHash = SoundHash(hash);
-    final ret = (error: PlayerErrors.values[result], soundHash: soundHash);
+    final ret = {'error': PlayerErrors.values[result], 'soundHash': soundHash};
     free(hashPtr);
 
     return ret;
@@ -218,7 +218,43 @@ class JSSoloud {
     return ret;
   }
 
+  void stop(SoundHandle handle) {
+    throw UnimplementedError();
+  }
+
   void seek(double time) {
+    throw UnimplementedError();
+  }
+
+  void disposeSound(SoundHash soundHash) {
+    throw UnimplementedError();
+  }
+
+  void disposeAllSound() {
+    throw UnimplementedError();
+  }
+
+  ({PlayerErrors error, SoundHandle handle}) speechText(String textToSpeech) {
+    throw UnimplementedError();
+  }
+
+  ({PlayerErrors error, SoundHandle newHandle}) play3d(
+    SoundHash soundHash,
+    double posX,
+    double posY,
+    double posZ, {
+    double velX = 0,
+    double velY = 0,
+    double velZ = 0,
+    double volume = 1,
+    bool paused = false,
+    bool looping = false,
+    Duration loopingStartAt = Duration.zero,
+  }) {
+    throw UnimplementedError();
+  }
+
+  bool getIsValidVoiceHandle(SoundHandle handle) {
     throw UnimplementedError();
   }
 }

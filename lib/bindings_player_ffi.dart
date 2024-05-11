@@ -215,7 +215,7 @@ class FlutterSoLoudFfi {
   /// [detune]
   /// `soundHash` return hash of the sound
   /// Returns [PlayerErrors.noError] if success
-  ({PlayerErrors error, SoundHash soundHash}) loadWaveform(
+  Map<String, dynamic> loadWaveform(
     WaveForm waveform,
     bool superWave,
     double scale,
@@ -232,7 +232,7 @@ class FlutterSoLoudFfi {
       h,
     );
     final soundHash = SoundHash(h.value);
-    final ret = (error: PlayerErrors.values[e], soundHash: soundHash);
+    final ret = {'error': PlayerErrors.values[e], 'soundHash': soundHash};
     calloc.free(h);
     return ret;
   }

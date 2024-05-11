@@ -3,10 +3,13 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_soloud/audio_isolate.dart';
+import 'package:flutter_soloud/audio_source.dart';
 import 'dart:async';
 
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:flutter_soloud/sound_hash.dart';
+import 'package:flutter_soloud/enums.dart';
 
 import 'package:flutter_soloud/worker/worker_web.dart'
     if (dart.library.io) 'package:flutter_soloud/worker/worker_io.dart';
@@ -28,15 +31,21 @@ class _MyAppState extends State<MyApp> {
   late WorkerController controller;
 
   Future<void> initWorker() async {
+        
     controller = WorkerController();
     if (kIsWeb) {
-      controller = await WorkerController.spawn('assets/packages/flutter_soloud/web/audio_isolate.dart.js');
+      controller = await WorkerController.spawn(
+          'assets/packages/flutter_soloud/web/audio_isolate.dart.js');
     } else {
       controller = await WorkerController.spawn('');
     }
 
     controller.onReceive().listen((dynamic event) {
-      print('receive message from audio_isolate!! $event  ${event.runtimeType}');
+      if ((event as Map)['event'] == MessageEvents.loadWaveform) {
+        soundHash = (event['return']['sound'] as AudioSource).soundHash;
+      }
+      print(
+          'receive message from audio_isolate!! $event  ${event.runtimeType}');
     });
   }
 
@@ -50,85 +59,126 @@ class _MyAppState extends State<MyApp> {
         body: Center(
           child: Column(
             children: [
-              OutlinedButton(
-                onPressed: () {
-                  _flutterSoloudPlugin.init();
-                },
-                child: const Text('init'),
-              ),
-              OutlinedButton(
-                onPressed: () async {
-                  var sound = _flutterSoloudPlugin.loadWaveform();
-                  soundHash = sound.soundHash;
-                },
-                child: const Text('load waveform'),
-              ),
-              OutlinedButton(
-                onPressed: () async {
-                  if (kIsWeb) {
-                    final result = await FilePicker.platform
-                        .pickFiles(type: FileType.any, allowMultiple: false);
+              // OutlinedButton(
+              //   onPressed: () {
+              //     _flutterSoloudPlugin.init();
+              //   },
+              //   child: const Text('init'),
+              // ),
+              // OutlinedButton(
+              //   onPressed: () async {
+              //     var sound = _flutterSoloudPlugin.loadWaveform();
+              //     soundHash = sound.soundHash;
+              //   },
+              //   child: const Text('load waveform'),
+              // ),
+              // OutlinedButton(
+              //   onPressed: () async {
+              //     if (kIsWeb) {
+              //       final result = await FilePicker.platform
+              //           .pickFiles(type: FileType.any, allowMultiple: false);
 
-                    if (result != null && result.files.isNotEmpty) {
-                      final fileName = result.files.first.name;
-                      final fileBytes = result.files.first.bytes;
+              //       if (result != null && result.files.isNotEmpty) {
+              //         final fileName = result.files.first.name;
+              //         final fileBytes = result.files.first.bytes;
 
-                      var sound = await _flutterSoloudPlugin.loadMem(
-                        fileName,
-                        fileBytes!,
-                      );
-                      soundHash = sound.soundHash;
-                    }
-                  } else {
-                    var sound = await _flutterSoloudPlugin.loadMem(
-                        '/home/deimos/5/12.-Animal Instinct.flac',
-                        File('/home/deimos/5/12.-Animal Instinct.flac').readAsBytesSync(),
-                      );
-                      soundHash = sound.soundHash;
-                  }
-                  print('****** FILE LOADED $soundHash');
-                },
-                child: const Text('load mem'),
-              ),
-              OutlinedButton(
-                onPressed: () {
-                  _flutterSoloudPlugin.play(soundHash);
-                },
-                child: const Text('play'),
-              ),
-              OutlinedButton(
-                onPressed: () {
-                  _flutterSoloudPlugin.deinit();
-                },
-                child: const Text('dispose'),
-              ),
-              const SizedBox(height: 20),
+              //         var sound = await _flutterSoloudPlugin.loadMem(
+              //           fileName,
+              //           fileBytes!,
+              //         );
+              //         soundHash = sound.soundHash;
+              //       }
+              //     } else {
+              //       var sound = await _flutterSoloudPlugin.loadMem(
+              //         '/home/deimos/5/12.-Animal Instinct.flac',
+              //         File('/home/deimos/5/12.-Animal Instinct.flac')
+              //             .readAsBytesSync(),
+              //       );
+              //       soundHash = sound.soundHash;
+              //     }
+              //     print('****** FILE LOADED $soundHash');
+              //   },
+              //   child: const Text('load mem'),
+              // ),
+              // OutlinedButton(
+              //   onPressed: () {
+              //     _flutterSoloudPlugin.play(soundHash);
+              //   },
+              //   child: const Text('play'),
+              // ),
+              // OutlinedButton(
+              //   onPressed: () {
+              //     _flutterSoloudPlugin.deinit();
+              //   },
+              //   child: const Text('dispose'),
+              // ),
+              // const SizedBox(height: 20),
               OutlinedButton(
                 onPressed: () async {
                   await initWorker();
                 },
                 child: const Text('INIT WORKER'),
               ),
+              const SizedBox(height: 20),
               OutlinedButton(
                 onPressed: () {
-                  controller
-                      .sendMessage({'event': 123});
+                  controller.sendMessage({'event': 123});
                 },
                 child: const Text('SEND Map()'),
               ),
               OutlinedButton(
                 onPressed: () {
-                  controller
-                      .sendMessage(1.2345);
+                  controller.sendMessage(1.2345);
                 },
                 child: const Text('SEND Double'),
               ),
               OutlinedButton(
                 onPressed: () {
-                  controller
-                      .sendMessage('CIAO');
+                  controller.sendMessage('CIAO');
                 },
                 child: const Text('SEND String'),
+              ),
+              
+              const SizedBox(height: 20),
+              OutlinedButton(
+                onPressed: () {
+                  print('******** main() MessageEvents.initEngine');
+                  controller.sendMessage({
+                    'event': MessageEvents.initEngine.index,
+                    'args': {},
+                  });
+                },
+                child: const Text('MessageEvents.initEngine'),
+              ),
+              OutlinedButton(
+                onPressed: () {
+                  controller.sendMessage({
+                    'event': MessageEvents.loadWaveform.index,
+                    'args': {
+                      'waveForm': WaveForm.fSquare,
+                      'superWave': true,
+                      'scale': 1.0,
+                      'detune': 1.0,
+                    },
+                  });
+                },
+                child: const Text('MessageEvents.loadWaveform'),
+              ),
+              OutlinedButton(
+                onPressed: () {
+                  controller.sendMessage({
+                    'event': MessageEvents.play.index,
+                    'args': {
+                      'soundHash': soundHash,
+                      'volume': 1.0,
+                      'pan': 1.0,
+                      'paused': false,
+                      'looping': false,
+                      'loopingStartAt': Duration.zero,
+                    },
+                  });
+                },
+                child: const Text('MessageEvents.play'),
               ),
             ],
           ),

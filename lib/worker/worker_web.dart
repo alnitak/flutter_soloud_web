@@ -7,6 +7,7 @@ import 'dart:convert' show jsonDecode, jsonEncode;
 import 'worker.dart' as base;
 // import 'dart:html' as html;
 import 'package:web/web.dart' as web;
+import 'package:flutter_soloud/worker/js_import.dart';
 
 // Masked type: ServiceWorkerGlobalScope
 @JS('self')
@@ -60,6 +61,11 @@ class WorkerController implements base.WorkerController {
     controller._worker?.onmessage = (((web.MessageEvent event) {
       controller._outputController?.add(event.data.dartify());
     })).toJS;
+
+    JSImport.import(
+        source: 'wasm/build/libflutter_soloud_plugin.js',
+        package: 'flutter_soloud');
+
     return controller;
   }
 
@@ -70,9 +76,11 @@ class WorkerController implements base.WorkerController {
 
   @override
   void sendMessage(dynamic message) {
+    print('******** sendMessage()1: $message');
     switch (message) {
       case Map():
         final mapEncoded = jsonEncode(message);
+        print('********* sendMessage()2: $mapEncoded');
         _worker?.postMessage(mapEncoded.jsify());
       case num():
         _worker?.postMessage(message.toJS);
