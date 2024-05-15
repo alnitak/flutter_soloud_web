@@ -20,4 +20,4 @@ The bindings are in `flutter_soloud.dart`.
 
 ## The problems
 
-Refer to the issue [#1](https://github.com/alnitak/flutter_soloud_web/issues/2)
+Refer to the issue [#2](https://github.com/alnitak/flutter_soloud_web/issues/2)
