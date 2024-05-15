@@ -1,6 +1,6 @@
 # flutter_soloud
 
-Only the web version of [flutter_soloud](https://github.com/alnitak/flutter_soloud) package.
+Testing implementation of the web version of [flutter_soloud](https://github.com/alnitak/flutter_soloud) package.
 
 ## Description
 
@@ -20,4 +20,4 @@ The bindings are in `flutter_soloud.dart`.
 
 ## The problems
 
-Refer to the issue [#1](https://github.com/alnitak/flutter_soloud_web/issues/1)
+Refer to the issue [#1](https://github.com/alnitak/flutter_soloud_web/issues/2)
