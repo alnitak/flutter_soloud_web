@@ -1,6 +1,7 @@
 // ignore_for_file: require_trailing_commas, public_member_api_docs,
 // ignore_for_file: unnecessary_breaks
 import 'dart:convert' show jsonDecode, jsonEncode;
+import 'dart:html' as html;
 
 import 'package:flutter_soloud/worker/js_import.dart';
 import 'package:flutter_soloud/worker/send_port_io.dart';
@@ -32,6 +33,7 @@ enum MessageEvents {
   stop,
   disposeSound,
   disposeAllSound,
+  loadSoLoudJS,
 }
 
 // /// definitions to be checked in main isolate
@@ -103,9 +105,8 @@ Map _parseEventData(dynamic data) {
 void audioIsolate(SendPort? isolateToMainStream) async {
   print('Worker created. isolateToMainStream: $isolateToMainStream\n');
 
-    JSImport.import(
-        source: 'wasm/build/libflutter_soloud_plugin.js',
-        package: 'flutter_soloud');
+  // html.WorkerGlobalScope.instance.self
+  //     .importScripts('libflutter_soloud_plugin.js');
 
   var worker = Worker(args: isolateToMainStream);
   final mainToIsolateStream = worker.onReceive();
@@ -118,9 +119,8 @@ void audioIsolate(SendPort? isolateToMainStream) async {
   /// Tell the main isolate how to communicate with this isolate
   // worker.sendMessage(mainToIsolateStream.sendPort);
 
-  /// Listen to all requests from the main isolate
+  /// Listen to events from the main isolate
   mainToIsolateStream.listen((data) {
-        
     final newData = _parseEventData(data);
 
     print('******** audioIsolate()1: $newData');
@@ -135,10 +135,40 @@ void audioIsolate(SendPort? isolateToMainStream) async {
     }
 
     switch (event) {
+      case MessageEvents.loadSoLoudJS:
+        // var m =
+        //     jsonEncode({'event': newData['event'], 'args': {}, 'return': {}});
+        // print(']]]]]]]]]]]]]]] WORKER MessageEvents.loadSoLoudJS  $m');
+
+        // worker.sendMessage(m);
+        final s = SoundHandle(args['handle']);
+        print(']]]]]]]]]]]]]]] WORKER MessageEvents.loadSoLoudJS  $s');
+        final isValid =
+            soLoudController.soLoudFFI.getIsValidVoiceHandle(s);
+        print(']]]]]]]]]]]]]]] WORKER MessageEvents.loadSoLoudJS  $isValid');
+        break;
+
       case MessageEvents.initEngine:
         final ret = soLoudController.soLoudFFI.initEngine();
-        print('@@@@@@@@@@@ MessageEvents.initEngine ret: $ret');
-        worker.sendMessage({'event': event, 'args': args, 'return': ret});
+        print('*** INITENGINE1  $ret');
+
+        final ret2 = soLoudController.soLoudFFI.loadWaveform(
+          WaveForm.fSaw,
+          true,
+          1.0,
+          1.0,
+        );
+        var s = ret2['soundHash'] as SoundHash;
+        print('*** INITENGINE2  ${s.hash}');
+
+        final ret3 = soLoudController.soLoudFFI.play(s);
+        print('*** INITENGINE3  $ret3');
+
+        var m =
+            jsonEncode({'event': newData['event'], 'args': {}, 'return': {}});
+        print('@@@@@@@@@@@ MessageEvents.initEngine ret: $m');
+        worker.sendMessage(
+            jsonEncode({'event': newData['event'], 'args': {}, 'return': 0}));
         break;
 
       case MessageEvents.loadFile:

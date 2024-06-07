@@ -3,6 +3,7 @@ import 'package:flutter_soloud/audio_source.dart';
 import 'package:flutter_soloud/soloud_controller.dart';
 import 'package:flutter_soloud/sound_hash.dart';
 import 'package:flutter_soloud/enums.dart';
+import 'package:flutter_soloud/sound_handle.dart';
 
 import 'flutter_soloud_platform_interface.dart';
 
@@ -48,11 +49,22 @@ class FlutterSoloud {
   AudioSource loadWaveform() {
     final ret =
         _controller.soLoudFFI.loadWaveform(WaveForm.fSaw, true, 0.25, 1);
-    return AudioSource(ret['soundHash'] as SoundHash);
+    AudioSource newSound = AudioSource(ret['soundHash']);
+
+    print('LOAD WAVEFORM $ret');
+    return newSound;
   }
 
-  void play(SoundHash soundHash) {
+  SoundHandle play(SoundHash soundHash) {
     var ret = _controller.soLoudFFI.play(soundHash);
     print('PLAY $ret');
+    return ret.newHandle;
+  }
+
+  bool getIsValidVoiceHandle(SoundHandle handle) {
+    print('GET IS VALID1');
+    var ret = _controller.soLoudFFI.getIsValidVoiceHandle(handle);
+    print('GET IS VALID $ret');
+    return ret;
   }
 }

@@ -5,13 +5,16 @@ import 'dart:js_util';
 import 'dart:convert' show jsonDecode, jsonEncode;
 
 import 'worker.dart' as base;
-// import 'dart:html' as html;
+import 'dart:html' as html;
 import 'package:web/web.dart' as web;
 import 'package:flutter_soloud/worker/js_import.dart';
 
 // Masked type: ServiceWorkerGlobalScope
 @JS('self')
 external JSAny get globalScopeSelf;
+
+@JS('self.importScript')
+external JSAny _importScript(String path);
 
 void jsSendMessage(dynamic m) {
   globalContext.callMethod('postMessage'.toJS, m);
@@ -59,11 +62,13 @@ class WorkerController implements base.WorkerController {
     controller._worker = web.Worker(path);
 
     controller._worker?.onmessage = (((web.MessageEvent event) {
+      print('§§§§§§§§§§§§§§§§§§§§§§§§§§§  ${event.type}');
       controller._outputController?.add(event.data.dartify());
     })).toJS;
 
+    /// Load .js in main isolate
     JSImport.import(
-        source: 'wasm/build/libflutter_soloud_plugin.js',
+        source: 'web/libflutter_soloud_plugin.js',
         package: 'flutter_soloud');
 
     return controller;

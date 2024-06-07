@@ -40,6 +40,6 @@ flutter:
 
   assets:
     - web/audio_isolate.dart.js
-    - wasm/build/libflutter_soloud_plugin.js
-    - wasm/build/libflutter_soloud_plugin.wasm
+    - web/libflutter_soloud_plugin.js
+    - web/libflutter_soloud_plugin.wasm
   

@@ -78,6 +78,9 @@ external int _loadWaveform(
 external int _play(int soundHash, double volume, double pan, bool paused,
     bool looping, double loopingStartAt, int handlePtr);
 
+@JS('Module._getIsValidVoiceHandle')
+external int _getIsValidVoiceHandle(int handle);
+
 class JSSoloudPlayer {
   int malloc(int bytesCount) => _malloc(bytesCount);
 
@@ -104,8 +107,9 @@ class JSSoloudPlayer {
       _ccall(fName, returnType, argTypes, args);
 
   int initEngine() {
-    print('[[[[[[[[[[[[]]]]]]]]]]]] initEngine()  $initEngine');
-    return _initEngine();
+    var a = _initEngine();
+    print('[[[[[[[[[[[[]]]]]]]]]]]] initEngine()  $a  $initEngine');
+    return a;
   }
 
   void deinit() => _dispose();
@@ -255,7 +259,10 @@ class JSSoloudPlayer {
   }
 
   bool getIsValidVoiceHandle(SoundHandle handle) {
-    throw UnimplementedError();
+    print('JSSoloudPlayer getIsValidVoiceHandle1  handle: $handle');
+    final b = _getIsValidVoiceHandle(handle.id);
+    print('JSSoloudPlayer getIsValidVoiceHandle: $b');
+    return b == 1;
   }
 }
 

@@ -24,7 +24,7 @@ import 'bindings_player_web.dart';
 //   ///
 //   Future<void> initialize() async{
 //     print('################ SoLoudController()1');
-//     await JSImport.import(source: 'wasm/build/libflutter_soloud_plugin.js', package: 'flutter_soloud');
+//     await JSImport.import(source: 'web/libflutter_soloud_plugin.js', package: 'flutter_soloud');
 //     print('################ SoLoudController()2');
 //     soLoudFFI = JSSoloudPlayer();
 //     print('################ SoLoudController()3');
@@ -82,7 +82,7 @@ class SoLoudController {
 
 //   static Future<SoLoudController> initialize() async {
 //     print('################ SoLoudController()1');
-//     await JSImport.import(source: 'wasm/build/libflutter_soloud_plugin.js', package: 'flutter_soloud');
+//     await JSImport.import(source: 'web/libflutter_soloud_plugin.js', package: 'flutter_soloud');
 //     print('################ SoLoudController()2');
 //     _soLoudFFI = JSSoloudPlayer();
 //     print('################ SoLoudController()3');

@@ -1,3 +1,6 @@
+// ignore_for_file: avoid_print
+
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -8,7 +11,10 @@ import 'package:flutter_soloud/audio_source.dart';
 import 'dart:async';
 
 import 'package:flutter_soloud/flutter_soloud.dart';
+import 'package:flutter_soloud/soloud_controller.dart';
+import 'package:flutter_soloud/audio_source.dart';
 import 'package:flutter_soloud/sound_hash.dart';
+import 'package:flutter_soloud/sound_handle.dart';
 import 'package:flutter_soloud/enums.dart';
 import 'package:flutter_soloud/worker/js_import.dart';
 
@@ -28,7 +34,9 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final _flutterSoloudPlugin = FlutterSoloud();
+  late AudioSource audioSource;
   late SoundHash soundHash;
+  late SoundHandle soundHandle;
   late WorkerController controller;
 
   Future<void> initWorker() async {
@@ -41,9 +49,17 @@ class _MyAppState extends State<MyApp> {
     }
 
     controller.onReceive().listen((dynamic event) {
-      if ((event as Map)['event'] == MessageEvents.loadWaveform) {
-        soundHash = (event['return']['sound'] as AudioSource).soundHash;
+      // if ((event as Map)['event'] == MessageEvents.loadWaveform) {
+      //   soundHash = (event['return']['sound'] as AudioSource).soundHash;
+      // }
+      Map m = jsonDecode(event);
+      if (m['event'] == MessageEvents.loadSoLoudJS.index) {
+        print(']]]]]]]]]]]]]]] MAIN MessageEvents.loadSoLoudJS');
+        JSImport.import(
+            source: 'web/libflutter_soloud_plugin.js',
+            package: 'flutter_soloud');
       }
+
       print(
           'receive message from audio_isolate!! $event  ${event.runtimeType}');
     });
@@ -67,8 +83,9 @@ class _MyAppState extends State<MyApp> {
               ),
               OutlinedButton(
                 onPressed: () async {
-                  var sound = _flutterSoloudPlugin.loadWaveform();
-                  soundHash = sound.soundHash;
+                  audioSource = _flutterSoloudPlugin.loadWaveform();
+                  soundHash = audioSource.soundHash;
+                  print('main loadWaveform audioSource: $soundHash');
                 },
                 child: const Text('load waveform'),
               ),
@@ -102,9 +119,18 @@ class _MyAppState extends State<MyApp> {
               // ),
               OutlinedButton(
                 onPressed: () {
-                  _flutterSoloudPlugin.play(soundHash);
+                  soundHandle = _flutterSoloudPlugin.play(soundHash);
                 },
                 child: const Text('play'),
+              ),
+              OutlinedButton(
+                onPressed: () {
+                  print('main getIsValidVoiceHandle1: $soundHandle');
+                  // final b = _flutterSoloudPlugin
+                  //     .getIsValidVoiceHandle(soundHandle);
+                  print('main getIsValidVoiceHandle: $soundHandle ');
+                },
+                child: const Text('get is valid'),
               ),
               OutlinedButton(
                 onPressed: () {
@@ -142,6 +168,16 @@ class _MyAppState extends State<MyApp> {
               const SizedBox(height: 20),
               OutlinedButton(
                 onPressed: () {
+                  print('******** main() MessageEvents.loadSoLoudJS');
+                  controller.sendMessage({
+                    'event': MessageEvents.loadSoLoudJS.index,
+                    'args': {'handle': audioSource.soundHash.hash},
+                  });
+                },
+                child: const Text('MessageEvents.loadSoLoudJS'),
+              ),
+              OutlinedButton(
+                onPressed: () {
                   print('******** main() MessageEvents.initEngine');
                   controller.sendMessage({
                     'event': MessageEvents.initEngine.index,
@@ -169,7 +205,7 @@ class _MyAppState extends State<MyApp> {
                   controller.sendMessage({
                     'event': MessageEvents.play.index,
                     'args': {
-                      'soundHash': soundHash,
+                      'soundHash': audioSource.soundHash,
                       'volume': 1.0,
                       'pan': 1.0,
                       'paused': false,

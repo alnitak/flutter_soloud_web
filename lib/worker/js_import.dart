@@ -41,13 +41,9 @@ class JSImport {
       importedSources.add(source);
       print('################ JSImport()6  $importedSources');
     } catch (e) {
-      final web.HTMLScriptElement libraryElement = web.HTMLScriptElement()
-        ..type = type ?? "text/javascript"
-        ..charset = "utf-8"
-        ..defer = async
-        ..async = async
-        ..src = source;
-      print('################ JSImport() CATCH  $libraryElement  ------');
+      print('################ JSImport() CATCH');
+      final a = web.document;
+      print('################ JSImport() CATCH  $a  ------');
     }
   }
 

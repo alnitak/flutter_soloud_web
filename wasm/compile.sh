@@ -5,13 +5,18 @@ cd build
 #emcmake cmake ..
 #emmake make -j30
 
+rm -f ../../web/libflutter_soloud_plugin.*
+
 #https://emscripten.org/docs/tools_reference/emcc.html
 #-g3 #keep debug info, including JS whitespace, function names
 #-sSTACK_SIZE=1048576 -sALLOW_MEMORY_GROWTH
 
-# rm ../../example/web/libflutter_soloud_plugin.*
-
 # https://emscripten.org/docs/tools_reference/settings_reference.html
+
+# -DMA_ENABLE_AUDIO_WORKLETS -sAUDIO_WORKLET=1 -sWASM_WORKERS=1 -sASYNCIFY
+# https://github.com/mackron/miniaudio/issues/597#issuecomment-1445060662
+# https://github.com/mackron/miniaudio/commit/810cdc238077ce86197e6c8cf70b06c5eea3e26f
+
 em++ \
 -I ../../src -I ../../src/filters -I ../../src/synth -I ../../src/soloud/include \
 -I ../../src/soloud/src -I ../../src/soloud/include \
@@ -37,8 +42,7 @@ em++ \
 --shell-file ../html_template.html \
 -s DEFAULT_TO_CXX \
 -s STACK_SIZE=1048576 -s ALLOW_MEMORY_GROWTH \
--o libflutter_soloud_plugin.js
-#-o ../../example/web/libflutter_soloud_plugin.js
+-o ../../web/libflutter_soloud_plugin.js
 
 #emcc -o main.html ../../src/main.c --shell-file ../html_template.html \
 #-I ~/.emscripten_cache/sysroot/include \
