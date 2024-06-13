@@ -1,24 +1,35 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_soloud/audio_source.dart';
-import 'package:flutter_soloud/soloud_controller.dart';
+import 'package:flutter_soloud/soloud_controller_web.dart';
 import 'package:flutter_soloud/sound_hash.dart';
 import 'package:flutter_soloud/enums.dart';
 import 'package:flutter_soloud/sound_handle.dart';
 
 import 'flutter_soloud_platform_interface.dart';
 
-/// To be replaced by soloud.dart
+/// To be replaced with soloud.dart
 class FlutterSoloud {
   final _controller = SoLoudController();
   Future<String?> getPlatformVersion() async {
     return FlutterSoloudPlatform.instance.getPlatformVersion();
   }
 
-  int init() {
+  PlayerErrors init() {
     final ret = _controller.soLoudFFI.initEngine();
+    _initializeNativeCallbacks();
+
     debugPrint('***************** INIT result: $ret');
     return ret;
     // return PlayerErrors.noError;
+  }
+
+  void sendMessage(String message, int value) {
+    SoLoudController().soLoudFFI.sendMessageToWasmWorker(message, value);
+  }
+
+  void _initializeNativeCallbacks() {
+    // Initialize callbacks.
+    // SoLoudController().soLoudFFI.setDartEventCallbacks();
   }
 
   bool isInited() {
@@ -30,13 +41,13 @@ class FlutterSoloud {
   }
 
   /// Reading a local file on web is not possible. Use [loadMem] instead
-  AudioSource loadFile(
-    String path, {
-    LoadMode mode = LoadMode.memory,
-  }) {
-    var ret = _controller.soLoudFFI.loadFile(path, mode);
-    return AudioSource(ret.soundHash);
-  }
+  // AudioSource loadFile(
+  //   String path, {
+  //   LoadMode mode = LoadMode.memory,
+  // }) {
+  //   var ret = _controller.soLoudFFI.loadFile(path, mode);
+  //   return AudioSource(ret.soundHash);
+  // }
 
   /// On web the audio file must be loaded in memory first and then passed
   /// as [bytes].
@@ -49,7 +60,7 @@ class FlutterSoloud {
   AudioSource loadWaveform() {
     final ret =
         _controller.soLoudFFI.loadWaveform(WaveForm.fSaw, true, 0.25, 1);
-    AudioSource newSound = AudioSource(ret['soundHash']);
+    AudioSource newSound = AudioSource(ret.soundHash);
 
     print('LOAD WAVEFORM $ret');
     return newSound;

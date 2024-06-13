@@ -34,11 +34,11 @@ em++ \
 ../../src/capture.cpp \
 ../../src/synth/basic_wave.cpp \
 ../../src/filters/filters.cpp \
--O3 -D WITH_MINIAUDIO \
+-O1 -D WITH_MINIAUDIO \
 -I ~/.emscripten_cache/sysroot/include \
 -s "EXPORTED_RUNTIME_METHODS=['ccall','cwrap']" \
 -s "EXPORTED_FUNCTIONS=['_free', '_malloc']" \
--s EXPORT_ALL=1 -s NO_EXIT_RUNTIME=1 \
+-sASSERTIONS -s EXPORT_ALL=1 -s NO_EXIT_RUNTIME=1 \
 --shell-file ../html_template.html \
 -s DEFAULT_TO_CXX \
 -s STACK_SIZE=1048576 -s ALLOW_MEMORY_GROWTH \

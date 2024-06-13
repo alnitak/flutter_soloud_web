@@ -1,5 +1,5 @@
-file:///home/deimos/.pub-cache/hosted/pub.dev/meta-1.11.0/lib/meta.dart
-file:///home/deimos/.pub-cache/hosted/pub.dev/meta-1.11.0/lib/meta_meta.dart
+file:///home/deimos/.pub-cache/hosted/pub.dev/meta-1.12.0/lib/meta.dart
+file:///home/deimos/.pub-cache/hosted/pub.dev/meta-1.12.0/lib/meta_meta.dart
 file:///home/deimos/.pub-cache/hosted/pub.dev/path-1.9.0/lib/path.dart
 file:///home/deimos/.pub-cache/hosted/pub.dev/path-1.9.0/lib/src/characters.dart
 file:///home/deimos/.pub-cache/hosted/pub.dev/path-1.9.0/lib/src/context.dart
@@ -143,18 +143,14 @@ file:///home/deimos/.pub-cache/hosted/pub.dev/web-0.5.1/lib/src/helpers/lists.da
 file:///home/deimos/.pub-cache/hosted/pub.dev/web-0.5.1/lib/src/helpers/renames.dart
 file:///home/deimos/.pub-cache/hosted/pub.dev/web-0.5.1/lib/web.dart
 file:///home/deimos/FLUTTER/tmp/flutter_soloud/.dart_tool/package_config.json
-file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/audio_isolate.dart
-file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/audio_source.dart
 file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/bindings_player_web.dart
 file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/enums.dart
-file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/soloud_controller.dart
-file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/soloud_controller_web.dart
 file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/sound_handle.dart
 file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/sound_hash.dart
 file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/worker/js_import.dart
-file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/worker/send_port_io.dart
 file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/worker/worker.dart
 file:///home/deimos/FLUTTER/tmp/flutter_soloud/lib/worker/worker_web.dart
+file:///home/deimos/FLUTTER/tmp/flutter_soloud/web/worker.dart
 file:///home/deimos/dev/flutter/bin/cache/dart-sdk/lib/_internal/dart2js_platform.dill
 file:///home/deimos/dev/flutter/bin/cache/dart-sdk/lib/libraries.json
 org-dartlang-sdk:///lib/_http/crypto.dart
@@ -176,6 +172,7 @@ org-dartlang-sdk:///lib/_internal/js_runtime/lib/collection_patch.dart
 org-dartlang-sdk:///lib/_internal/js_runtime/lib/constant_map.dart
 org-dartlang-sdk:///lib/_internal/js_runtime/lib/convert_patch.dart
 org-dartlang-sdk:///lib/_internal/js_runtime/lib/core_patch.dart
+org-dartlang-sdk:///lib/_internal/js_runtime/lib/dart2js_only.dart
 org-dartlang-sdk:///lib/_internal/js_runtime/lib/dart2js_runtime_metrics.dart
 org-dartlang-sdk:///lib/_internal/js_runtime/lib/developer_patch.dart
 org-dartlang-sdk:///lib/_internal/js_runtime/lib/foreign_helper.dart
@@ -202,6 +199,7 @@ org-dartlang-sdk:///lib/_internal/js_runtime/lib/regexp_helper.dart
 org-dartlang-sdk:///lib/_internal/js_runtime/lib/string_helper.dart
 org-dartlang-sdk:///lib/_internal/js_runtime/lib/synced/async_status_codes.dart
 org-dartlang-sdk:///lib/_internal/js_runtime/lib/synced/embedded_names.dart
+org-dartlang-sdk:///lib/_internal/js_runtime/lib/synced/invocation_mirror_constants.dart
 org-dartlang-sdk:///lib/_internal/js_runtime/lib/synced/load_library_priority.dart
 org-dartlang-sdk:///lib/_internal/js_runtime/lib/typed_data_patch.dart
 org-dartlang-sdk:///lib/_internal/js_shared/lib/convert_utf_patch.dart
@@ -294,6 +292,7 @@ org-dartlang-sdk:///lib/core/uri.dart
 org-dartlang-sdk:///lib/core/weak.dart
 org-dartlang-sdk:///lib/developer/developer.dart
 org-dartlang-sdk:///lib/developer/extension.dart
+org-dartlang-sdk:///lib/developer/http_profiling.dart
 org-dartlang-sdk:///lib/developer/profiler.dart
 org-dartlang-sdk:///lib/developer/service.dart
 org-dartlang-sdk:///lib/developer/timeline.dart

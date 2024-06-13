@@ -2,6 +2,8 @@
 
 import 'dart:async';
 
+import 'package:flutter_soloud/worker/js_import.dart';
+
 import 'bindings_player_web.dart';
 
 /// Controller that expose method channel and FFI
@@ -64,6 +66,9 @@ class SoLoudController {
   Future<void> initialize() async {
     _soLoudFFI = JSSoloudPlayer();
     // captureFFI = FlutterCaptureFfi.fromLookup(nativeLib.lookup);
+    await JSImport.import(
+        source: 'web/libflutter_soloud_plugin.js',
+        package: 'flutter_soloud');
     _isInitialized?.complete(true);
   }
 }

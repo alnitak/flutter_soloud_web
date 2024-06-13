@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:meta/meta.dart';
 import 'package:flutter_soloud/sound_handle.dart';
 import 'package:flutter_soloud/sound_hash.dart';
+import 'package:meta/meta.dart';
 
 /// the type sent back to the user when a sound event occurs
 typedef StreamSoundEvent = ({
@@ -11,6 +11,15 @@ typedef StreamSoundEvent = ({
   AudioSource sound,
   SoundHandle handle,
 });
+
+/// sound event types
+enum SoundEventType {
+  /// handle reached the end of playback
+  handleIsNoMoreValid,
+
+  /// the sound has been disposed
+  soundDisposed,
+}
 
 /// A representation of an audio source: something that can be played.
 ///
@@ -98,13 +107,4 @@ class AudioSource {
   String toString() {
     return 'soundHash: $soundHash has ${handles.length} active handles';
   }
-}
-
-/// sound event types
-enum SoundEventType {
-  /// handle reached the end of playback
-  handleIsNoMoreValid,
-
-  /// the sound has been disposed
-  soundDisposed,
 }

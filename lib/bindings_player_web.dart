@@ -1,5 +1,9 @@
 import 'dart:typed_data';
 import 'dart:js_interop';
+import 'dart:js_util';
+
+import 'package:meta/meta.dart';
+import 'package:web/web.dart' as web;
 
 import 'package:flutter_soloud/enums.dart';
 import 'package:flutter_soloud/sound_hash.dart';
@@ -10,6 +14,9 @@ import 'package:flutter_soloud/sound_handle.dart';
 
 /// https://github.com/isar/isar/blob/main/packages/isar/lib/src/web/web.dart
 /// chromium --disable-web-security --disable-gpu --user-data-dir=~/chromeTemp
+///
+/// Call Dart method from JS in Flutter Web
+/// https://stackoverflow.com/questions/65423861/call-dart-method-from-js-in-flutter-web
 
 /// These exports should take place of "bindings_player_ffi.dart" and referenced
 /// into SoLoudController taking the place of "soLoudFFI".
@@ -49,6 +56,19 @@ external JSFunction _ccall(
   JSArray<JSString> argTypes,
   JSArray<JSAny> args,
 );
+
+@JS('Module._createWorkerInWasm')
+external void _createWorkerInWasm();
+
+@JS('Module._sendToWorker')
+external void _sendToWorker(String message, int value);
+
+void voiceCallbackFromJs(int handle) {
+  print('EUREKAAAAAAAAAAA  DART void voiceCallbackFromJs()  $handle');
+}
+
+@JS('Module.worker')
+external web.Worker wasmWorker;
 
 @JS('Module._initEngine')
 external int _initEngine();
@@ -106,10 +126,24 @@ class JSSoloudPlayer {
   ) =>
       _ccall(fName, returnType, argTypes, args);
 
-  int initEngine() {
+  PlayerErrors initEngine() {
     var a = _initEngine();
-    print('[[[[[[[[[[[[]]]]]]]]]]]] initEngine()  $a  $initEngine');
-    return a;
+    print('[[[[[[[[[[[[]]]]]]]]]]]] initEngine()  $a');
+    // var result = callMethod(voiceEndedCallbackJS, 'call', [null, 1234]);
+    // print('@@@@@@@@@@@@@@ $result'); // Should print: Hello, Flutter!
+
+    setDartEventCallbacks();
+    return PlayerErrors.values[a];
+  }
+
+  /// Set a Dart function to call when a sound ends.
+  ///
+  void setDartEventCallbacks() {
+    _createWorkerInWasm();
+  }
+
+  void sendMessageToWasmWorker(String message, int value) {
+    _sendToWorker(message, value);
   }
 
   void deinit() => _dispose();
@@ -170,7 +204,7 @@ class JSSoloudPlayer {
     return ret;
   }
 
-  Map<String, dynamic> loadWaveform(
+  ({PlayerErrors error, SoundHash soundHash}) loadWaveform(
     WaveForm waveform,
     bool superWave,
     double scale,
@@ -188,7 +222,7 @@ class JSSoloudPlayer {
     /// "*" means unsigned int 32
     var hash = getValue(hashPtr, '*');
     final soundHash = SoundHash(hash);
-    final ret = {'error': PlayerErrors.values[result], 'soundHash': soundHash};
+    final ret = (error: PlayerErrors.values[result], soundHash: soundHash);
     free(hashPtr);
 
     return ret;

@@ -7,7 +7,7 @@
 import 'dart:ffi' as ffi;
 
 import 'package:ffi/ffi.dart';
-import 'enums.dart';
+import 'package:flutter_soloud/src/enums.dart';
 
 /// CaptureDevice struct exposed in C
 final class _CaptureDevice extends ffi.Struct {

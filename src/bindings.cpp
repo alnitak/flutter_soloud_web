@@ -6,6 +6,8 @@
 #include "common.h"
 #endif
 
+#include <emscripten/emscripten.h>
+
 #include "soloud/include/soloud_fft.h"
 #include "soloud_thread.h"
 
@@ -22,51 +24,151 @@ extern "C"
     std::unique_ptr<Player> player = nullptr;
     std::unique_ptr<Analyzer> analyzer = std::make_unique<Analyzer>(2048);
 
-    /// @brief Set a dart function to call when the sound with [handle] handle ends
-    /// @param callback this is the dart function that will be called
-    ///     when the sound ends to play.
-    ///     Must be global or a static class member:
-    ///     ```@pragma('vm:entry-point')
-    ///        void playEndedCallback(int handle) {
-    ///             // here the sound with [handle] has ended.
-    ///             // you can play again
-    ///             soLoudController.soLoudFFI.play(handle);
-    ///             // or dispose it
-    ///             soLoudController.soLoudFFI.stop(handle);
-    ///        }
-    ///     ```
-    /// @param handle the handle to the sound
-    /// @param callback this is the dart function that will be called
-    ///         when the sound ends to play
-    /// @return true if success;
-    // FFI_PLUGIN_EXPORT bool setPlayEndedCallback(void (*callback)(unsigned int), unsigned int handle)
-    // {
-    //     if (!player.get()->isInited()) return false;
-    //     ActiveSound* sound = player.get()->findByHandle(handle);
-    //     if (sound != nullptr) {
-    //         sound->playEndedCallback = callback;
-    //         return true;
-    //     }
-    //     return false;
-    // }
+    typedef void (*dartVoiceEndedCallback_t)(unsigned int *);
+    typedef void (*dartFileLoadedCallback_t)(enum PlayerErrors *, char *completeFileName, unsigned int *);
+    typedef void (*dartStateChangedCallback_t)(enum PlayerStateEvents *);
+
+    // to be used by `NativeCallable`, these functions must return void.
+    void (*dartVoiceEndedCallback)(unsigned int *) = nullptr;
+    void (*dartFileLoadedCallback)(enum PlayerErrors *, char *completeFileName, unsigned int *) = nullptr;
+    void (*dartStateChangedCallback)(enum PlayerStateEvents *) = nullptr;
+
+    //////////////////////////////////////////////////////////////
+    /// WEB WORKER
+
+    // Receive Worker URI and store it in the WASM "Module"
+    FFI_PLUGIN_EXPORT void createWorkerInWasm()
+    {
+        printf("void createWorkerInWasm()\n");
+        
+        EM_ASM({
+            // Create a new Worker from the URI
+            var workerUri = "assets/packages/flutter_soloud/web/worker.dart.js";
+            console.log("creating WEB WORKER  inside EM_ASM: " +
+                "  " + workerUri);
+            Module.workerWasm = new Worker(workerUri);
+        });
+    }
+
+    // Post a message with the Web Worker
+    FFI_PLUGIN_EXPORT void sendToWorker(const char *message, int value)
+    {
+        printf("void sendToWorker() %s  %d\n", message, value);
+        
+        EM_ASM({
+        if (Module.workerWasm)
+        {
+            console.log("JS SEND TO WORKER  POSTING " + UTF8ToString($0) + "  " + $1);
+            // window.voiceCallbackFromJs(value);
+            // Send the message
+            Module.workerWasm.postMessage(JSON.stringify({
+                message : UTF8ToString($0),
+                value : $1
+            }));
+        }
+        else
+        {
+            console.error('Worker not found.');
+        } }, message, value);
+    }
+    
+
+    FFI_PLUGIN_EXPORT void nativeFree(void *pointer)
+    {
+        free(pointer);
+    }
+
+    /// The callback to monitor when a voice ends.
+    ///
+    /// It is called by void `Soloud::stopVoice_internal(unsigned int aVoice)` when a voice ends
+    /// and comes from the audio thread (so on the web, from a different web worker).
+    FFI_PLUGIN_EXPORT void voiceEndedCallback(unsigned int *handle)
+    {
+        printf("********* CPP BINDINGS handle: %u", *handle);
+
+        // Calling JavaScript from C/C++
+        // https://emscripten.org/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#interacting-with-code-call-javascript-from-native
+        // emscripten_run_script("voiceEndedCallbackJS('1234')");
+        sendToWorker("voiceEndedCallback", *handle);
+
+        if (dartVoiceEndedCallback == nullptr)
+            return;
+        player->removeHandle(*handle);
+        // [n] pointer must be deleted on Dart.
+        unsigned int *n = (unsigned int *)malloc(sizeof(unsigned int *));
+        *n = *handle;
+        dartVoiceEndedCallback(n);
+    }
+
+    /// The callback to monitor when a file is loaded.
+    void fileLoadedCallback(enum PlayerErrors error, char *completeFileName, unsigned int *hash)
+    {
+        if (dartFileLoadedCallback == nullptr)
+            return;
+        // [e,name,n] pointers must be deleted on Dart.
+        PlayerErrors *e = (PlayerErrors *)malloc(sizeof(PlayerErrors *));
+        *e = error;
+        char *name = strdup(completeFileName);
+        unsigned int *n = (unsigned int *)malloc(sizeof(unsigned int *));
+        *n = *hash;
+        dartFileLoadedCallback(e, name, n);
+    }
+
+    void stateChangedCallback(unsigned int state)
+    {
+        PlayerStateEvents *type = (PlayerStateEvents *)malloc(sizeof(unsigned int *));
+        *type = (PlayerStateEvents)state;
+        if (dartStateChangedCallback != nullptr)
+            dartStateChangedCallback(type);
+    }
+
+    /// Set a Dart functions to call when an event occurs.
+    ///
+    FFI_PLUGIN_EXPORT void setDartEventCallback(
+        dartVoiceEndedCallback_t voice_ended_callback,
+        dartFileLoadedCallback_t file_loaded_callback,
+        dartStateChangedCallback_t state_changed_callback)
+    {
+        dartVoiceEndedCallback = voice_ended_callback;
+        dartFileLoadedCallback = file_loaded_callback;
+        dartStateChangedCallback = state_changed_callback;
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////
 
     /// Initialize the player.get()-> Must be called before any other player functions
     ///
     /// Returns [PlayerErrors.noError] if success
     FFI_PLUGIN_EXPORT enum PlayerErrors initEngine()
     {
+        // EM_ASM({
+        //     console.log('I received: ' + $0);
+        //     Module.voiceEndedCallbackJS($0); }, 2222);
+        // emscripten_run_script("Module.voiceEndedCallbackJS('1234')");
+
         if (player.get() == nullptr)
-        {
             player = std::make_unique<Player>();
-        }
+
+        player.get()->setStateChangedCallback(stateChangedCallback);
         PlayerErrors res = (PlayerErrors)player.get()->init();
         if (res != noError)
             return res;
 
+        // Set window size for filters
         const int windowSize = (player.get()->soloud.getBackendBufferSize() /
                                 player.get()->soloud.getBackendChannels()) -
                                1;
         analyzer.get()->setWindowsSize(windowSize);
+
+        // Set the callback for when a voice is ended/stopped
+        player.get()->setVoiceEndedCallback(voiceEndedCallback);
+
         return (PlayerErrors)noError;
     }
 
@@ -76,6 +178,7 @@ extern "C"
     {
         if (player.get() == nullptr)
             return;
+        dartVoiceEndedCallback = nullptr;
         player.get()->dispose();
         player = nullptr;
     }
@@ -87,26 +190,40 @@ extern "C"
         return player.get()->isInited() ? 1 : 0;
     }
 
-    /// Load a new sound to be played once or multiple times later
+    /// Load a new sound to be played once or multiple times later.
     ///
-    /// [completeFileName] the complete file path
+    /// After loading the file, the [fileLoadedCallback] will call the
+    /// Dart function defined with [setDartEventCallback] which gives back
+    /// the error and the new hash.
+    ///
+    /// [completeFileName] the complete file path.
     /// [loadIntoMem] if true Soloud::wav will be used which loads
     /// all audio data into memory. This will be useful when
     /// the audio is short, ie for game sounds, mainly used to prevent
     /// gaps or lags when starting a sound (less CPU, more memory allocated).
-    /// If false, Soloud::wavStream will be used and the audio data is loaded 
+    /// If false, Soloud::wavStream will be used and the audio data is loaded
     /// from the given file when needed (more CPU, less memory allocated).
     /// See the [seek] note problem when using [loadIntoMem] = false
     /// [hash] return the hash of the sound
     /// Returns [PlayerErrors.noError] if success
-    FFI_PLUGIN_EXPORT enum PlayerErrors loadFile(
-        char *completeFileName, 
-        bool loadIntoMem, 
-        unsigned int *hash)
+    FFI_PLUGIN_EXPORT void loadFile(
+        char *completeFileName,
+        bool loadIntoMem)
     {
+        // this check is already been done in Dart
         if (!player.get()->isInited())
-            return backendNotInited;
-        return (PlayerErrors)player.get()->loadFile(completeFileName, loadIntoMem, *hash);
+            return;
+
+        Player *p = player.get();
+        unsigned int hash = 0;
+        // std::thread loadThread([p, completeFileName, loadIntoMem, hash]()
+        //                        {
+        PlayerErrors error = p->loadFile(completeFileName, loadIntoMem, &hash);
+        // printf("*** LOAD FILE FROM THREAD error: %d  hash: %u\n", error,  *hash);
+        fileLoadedCallback(error, completeFileName, &hash);
+        //     });
+        // // TODO(marco): use .detach()? Use std::atomic somewhere
+        // loadThread.join();
     }
 
     /// Load a new sound stored into [buffer] to be played once or multiple times later.
@@ -117,11 +234,12 @@ extern "C"
     /// [length] the length of [buffer].
     /// [hash] return the hash of the sound.
     FFI_PLUGIN_EXPORT enum PlayerErrors loadMem(
-        char *uniqueName, 
-        unsigned char *buffer, 
+        char *uniqueName,
+        unsigned char *buffer,
         int length,
         unsigned int *hash)
     {
+        // this check is already been done in Dart
         if (!player.get()->isInited())
             return backendNotInited;
         return (PlayerErrors)player.get()->loadMem(uniqueName, buffer, length, *hash);
@@ -152,7 +270,7 @@ extern "C"
     {
         if (player.get() == nullptr || !player.get()->isInited())
             return backendNotInited;
-        return (PlayerErrors)player.get()->loadWaveform(waveform, superWave, scale, detune, *hash);;
+        return (PlayerErrors)player.get()->loadWaveform(waveform, superWave, scale, detune, *hash);
     }
 
     /// Set the scale of an already loaded waveform identified by [hash]
@@ -240,7 +358,7 @@ extern "C"
     /// [handle] the sound handle
     FFI_PLUGIN_EXPORT void pauseSwitch(unsigned int handle)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             !player.get()->isValidVoiceHandle(handle))
             return;
         player.get()->pauseSwitch(handle);
@@ -252,7 +370,7 @@ extern "C"
     /// [pause] the sound handle
     FFI_PLUGIN_EXPORT void setPause(unsigned int handle, bool pause)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             !player.get()->isValidVoiceHandle(handle))
             return;
         player.get()->setPause(handle, pause);
@@ -284,7 +402,7 @@ extern "C"
     /// [speed] the new speed
     FFI_PLUGIN_EXPORT void setRelativePlaySpeed(unsigned int handle, float speed)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             !player.get()->isValidVoiceHandle(handle))
             return;
         player.get()->setRelativePlaySpeed(handle, speed);
@@ -297,7 +415,7 @@ extern "C"
     /// [handle] the sound handle
     FFI_PLUGIN_EXPORT float getRelativePlaySpeed(unsigned int handle)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             !player.get()->isValidVoiceHandle(handle))
             return 1;
         return player.get()->getRelativePlaySpeed(handle);
@@ -311,9 +429,9 @@ extern "C"
     /// [paused] 0 not paused
     /// [newHandle] pointer to the handle for this new sound
     /// [looping] whether to start the sound in looping state.
-    /// [loopingStartAt] If looping is enabled, the loop point is, by default, 
-    /// the start of the stream. The loop start point can be set with this parameter, and 
-    /// current loop point can be queried with [getLoopingPoint] and 
+    /// [loopingStartAt] If looping is enabled, the loop point is, by default,
+    /// the start of the stream. The loop start point can be set with this parameter, and
+    /// current loop point can be queried with [getLoopingPoint] and
     /// changed by [setLoopingPoint].
     /// Return the error if any and a new [handle] of this sound
     FFI_PLUGIN_EXPORT enum PlayerErrors play(
@@ -336,7 +454,7 @@ extern "C"
     /// [handle]
     FFI_PLUGIN_EXPORT void stop(unsigned int handle)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             !player.get()->isValidVoiceHandle(handle))
             return;
         player.get()->stop(handle);
@@ -367,7 +485,7 @@ extern "C"
     /// Returns true if flagged for looping.
     FFI_PLUGIN_EXPORT int getLooping(unsigned int handle)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             !player.get()->isValidVoiceHandle(handle))
             return 0;
         return player.get()->getLooping(handle) == 1;
@@ -380,7 +498,7 @@ extern "C"
     /// [enable]
     FFI_PLUGIN_EXPORT void setLooping(unsigned int handle, bool enable)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             !player.get()->isValidVoiceHandle(handle))
             return;
         player.get()->setLooping(handle, enable);
@@ -392,7 +510,7 @@ extern "C"
     /// Returns the time in seconds.
     FFI_PLUGIN_EXPORT double getLoopPoint(unsigned int handle)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             !player.get()->isValidVoiceHandle(handle))
             return 0;
         return player.get()->getLoopPoint(handle);
@@ -404,7 +522,7 @@ extern "C"
     /// [time] in seconds.
     FFI_PLUGIN_EXPORT void setLoopPoint(unsigned int handle, double time)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             !player.get()->isValidVoiceHandle(handle))
             return;
         player.get()->setLoopPoint(handle, time);
@@ -476,7 +594,7 @@ extern "C"
     /// [samples] should be allocated and freed in dart side
     FFI_PLUGIN_EXPORT void getAudioTexture(float *samples)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             analyzer.get() == nullptr)
         {
             memset(samples, 0, sizeof(float) * 512);
@@ -499,7 +617,7 @@ extern "C"
     float texture2D[512][256];
     FFI_PLUGIN_EXPORT enum PlayerErrors getAudioTexture2D(float **samples)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             analyzer.get() == nullptr || !player.get()->isVisualizationEnabled())
         {
             if (*samples == nullptr)
@@ -531,16 +649,16 @@ extern "C"
     /// [time]
     /// [handle] the sound handle
     /// Returns [PlayerErrors.noError] if success
-    /// 
+    ///
     /// NOTE: when seeking an mp3 file loaded using `loadIntoMem`=false
-    /// the seek operation is not performed due to lags. This occurs because the 
+    /// the seek operation is not performed due to lags. This occurs because the
     /// mp3 codec must compute each frame length to gain a new position.
     /// The problem is explained in souloud_wavstream.cpp
     /// in `WavStreamInstance::seek` function.
     ///
     /// This mode is useful ie for background music, not for a music player
     /// where a seek slider for mp3s is a must.
-    /// If you need seeking mp3, please, use `loadIntoMem`=true instead 
+    /// If you need seeking mp3, please, use `loadIntoMem`=true instead
     /// or other audio formats!
     ///
     FFI_PLUGIN_EXPORT enum PlayerErrors seek(unsigned int handle, float time)
@@ -556,7 +674,7 @@ extern "C"
     /// Returns time in seconds
     FFI_PLUGIN_EXPORT double getPosition(unsigned int handle)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             !player.get()->isValidVoiceHandle(handle))
             return 0.0;
         return player.get()->getPosition(handle);
@@ -588,7 +706,7 @@ extern "C"
     /// Returns the volume
     FFI_PLUGIN_EXPORT double getVolume(unsigned int handle)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             !player.get()->isValidVoiceHandle(handle))
             return 0.0;
         return player.get()->getVolume(handle);
@@ -596,12 +714,12 @@ extern "C"
 
     /// Set current [handle] volume
     ///
-    /// Returns the volume
     FFI_PLUGIN_EXPORT enum PlayerErrors setVolume(unsigned int handle, float volume)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
-            !player.get()->isValidVoiceHandle(handle))
+        if (player.get() == nullptr || !player.get()->isInited())
             return backendNotInited;
+        if (!player.get()->isValidVoiceHandle(handle))
+            return soundHandleNotFound;
         player.get()->setVolume(handle, volume);
         return noError;
     }
@@ -612,7 +730,7 @@ extern "C"
     /// Return true if it still exists
     FFI_PLUGIN_EXPORT int getIsValidVoiceHandle(unsigned int handle)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             player.get()->getSoundsCount() == 0)
             return false;
         return player.get()->isValidVoiceHandle(handle) ? 1 : 0;
@@ -645,7 +763,7 @@ extern "C"
     /// Get a sound's protection state.
     FFI_PLUGIN_EXPORT bool getProtectVoice(unsigned int handle)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             !player.get()->isValidVoiceHandle(handle))
             return false;
         return player.get()->getProtectVoice(handle);
@@ -663,7 +781,7 @@ extern "C"
     /// [protect] whether to protect or not.
     FFI_PLUGIN_EXPORT void setProtectVoice(unsigned int handle, bool protect)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             !player.get()->isValidVoiceHandle(handle))
             return;
         player.get()->setProtectVoice(handle, protect);
@@ -804,11 +922,11 @@ extern "C"
     /////////////////////////////////////////
 
     /// Check if the given filter is active or not.
-    /// 
+    ///
     /// [filterType] filter to check
     /// Returns [PlayerErrors.noError] if no errors and the index of
     /// the given filter (-1 if the filter is not active)
-    /// 
+    ///
     FFI_PLUGIN_EXPORT enum PlayerErrors isFilterActive(enum FilterType filterType, int *index)
     {
         *index = -1;
@@ -819,7 +937,7 @@ extern "C"
     }
 
     /// Get parameters names of the given filter.
-    /// 
+    ///
     /// [filterType] filter to get param names
     /// Returns [PlayerErrors.noError] if no errors and the list of param names
     ///
@@ -833,7 +951,8 @@ extern "C"
         *paramsCount = static_cast<int>(pNames.size());
         *names = (char *)malloc(sizeof(char *) * *paramsCount);
         printf("C  paramsCount: %p  **names: %p\n", paramsCount, names);
-        for (int i = 0; i < *paramsCount; i++) {
+        for (int i = 0; i < *paramsCount; i++)
+        {
             names[i] = strdup(pNames[i].c_str());
             printf("C  i: %d  names[i]: %s  names[i]: %p\n", i, names[i], names[i]);
         }
@@ -841,10 +960,10 @@ extern "C"
     }
 
     /// Add the filter [filterType] to all sounds.
-    /// 
+    ///
     /// [filterType] filter to add
     /// Returns [PlayerErrors.noError] if no errors
-    /// 
+    ///
     FFI_PLUGIN_EXPORT enum PlayerErrors addGlobalFilter(enum FilterType filterType)
     {
         if (player.get() == nullptr || !player.get()->isInited())
@@ -853,10 +972,10 @@ extern "C"
     }
 
     /// Remove the filter [filterType].
-    /// 
+    ///
     /// [filterType] filter to remove
     /// Returns [PlayerErrors.noError] if no errors
-    /// 
+    ///
     FFI_PLUGIN_EXPORT enum PlayerErrors removeGlobalFilter(enum FilterType filterType)
     {
         if (player.get() == nullptr || !player.get()->isInited())
@@ -866,12 +985,12 @@ extern "C"
         return noError;
     }
 
-    /// Set the effect parameter with id [attributeId] 
+    /// Set the effect parameter with id [attributeId]
     /// of [filterType] with [value] value.
-    /// 
+    ///
     /// [filterType] filter to modify a param
     /// Returns [PlayerErrors.noError] if no errors
-    /// 
+    ///
     FFI_PLUGIN_EXPORT enum PlayerErrors setFxParams(enum FilterType filterType, int attributeId, float value)
     {
         if (player.get() == nullptr || !player.get()->isInited())
@@ -881,10 +1000,10 @@ extern "C"
     }
 
     /// Get the effect parameter with id [attributeId] of [filterType].
-    /// 
+    ///
     /// [filterType] filter to modify a param
     /// Returns the value of param
-    /// 
+    ///
     FFI_PLUGIN_EXPORT float getFxParams(enum FilterType filterType, int attributeId)
     {
         if (player.get() == nullptr || !player.get()->isInited())
@@ -901,9 +1020,9 @@ extern "C"
     /// [posX], [posY], [posZ] are the audio source position coordinates.
     /// [velX], [velY], [velZ] are the audio source velocity.
     /// [looping] whether to start the sound in looping state.
-    /// [loopingStartAt] If looping is enabled, the loop point is, by default, 
-    /// the start of the stream. The loop start point can be set with this parameter, and 
-    /// current loop point can be queried with [getLoopingPoint] and 
+    /// [loopingStartAt] If looping is enabled, the loop point is, by default,
+    /// the start of the stream. The loop start point can be set with this parameter, and
+    /// current loop point can be queried with [getLoopingPoint] and
     /// changed by [setLoopingPoint].
     /// Returns the handle of the sound, 0 if error
     FFI_PLUGIN_EXPORT PlayerErrors play3d(
@@ -920,7 +1039,7 @@ extern "C"
         double loopingStartAt,
         unsigned int *handle)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             player.get()->getSoundsCount() == 0)
             return backendNotInited;
 
@@ -948,7 +1067,7 @@ extern "C"
     /// and that the environment is dry air at around 20 degrees Celsius.
     FFI_PLUGIN_EXPORT void set3dSoundSpeed(float speed)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             player.get()->getSoundsCount() == 0)
             return;
         player.get()->set3dSoundSpeed(speed);
@@ -958,7 +1077,7 @@ extern "C"
     /// Get the sound speed
     FFI_PLUGIN_EXPORT float get3dSoundSpeed()
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             player.get()->getSoundsCount() == 0)
             return 0.0f;
         return player.get()->get3dSoundSpeed();
@@ -972,7 +1091,7 @@ extern "C"
         float upX, float upY, float upZ,
         float velocityX, float velocityY, float velocityZ)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             player.get()->getSoundsCount() == 0)
             return;
         player.get()->set3dListenerParameters(
@@ -989,7 +1108,7 @@ extern "C"
         float posY,
         float posZ)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             player.get()->getSoundsCount() == 0)
             return;
         player.get()->set3dListenerPosition(posX, posY, posZ);
@@ -1002,7 +1121,7 @@ extern "C"
         float atY,
         float atZ)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             player.get()->getSoundsCount() == 0)
             return;
         player.get()->set3dListenerAt(atX, atY, atZ);
@@ -1015,7 +1134,7 @@ extern "C"
         float upY,
         float upZ)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             player.get()->getSoundsCount() == 0)
             return;
         player.get()->set3dListenerAt(upX, upY, upZ);
@@ -1028,7 +1147,7 @@ extern "C"
         float velocityY,
         float velocityZ)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             player.get()->getSoundsCount() == 0)
             return;
         player.get()->set3dListenerVelocity(velocityX, velocityY, velocityZ);
@@ -1042,12 +1161,12 @@ extern "C"
         float posX, float posY, float posZ,
         float velocityX, float velocityY, float velocityZ)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             player.get()->getSoundsCount() == 0)
             return;
         player.get()->set3dSourceParameters(handle,
-                                     posX, posY, posZ,
-                                     velocityX, velocityY, velocityZ);
+                                            posX, posY, posZ,
+                                            velocityX, velocityY, velocityZ);
         player.get()->update3dAudio();
     }
 
@@ -1058,7 +1177,7 @@ extern "C"
         float posY,
         float posZ)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             player.get()->getSoundsCount() == 0)
             return;
         player.get()->set3dSourcePosition(handle, posX, posY, posZ);
@@ -1072,7 +1191,7 @@ extern "C"
         float velocityY,
         float velocityZ)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             player.get()->getSoundsCount() == 0)
             return;
         player.get()->set3dSourceVelocity(handle, velocityX, velocityY, velocityZ);
@@ -1086,7 +1205,7 @@ extern "C"
         float minDistance,
         float maxDistance)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             player.get()->getSoundsCount() == 0)
             return;
         player.get()->set3dSourceMinMaxDistance(handle, minDistance, maxDistance);
@@ -1106,7 +1225,7 @@ extern "C"
         unsigned int attenuationModel,
         float attenuationRolloffFactor)
     {
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             player.get()->getSoundsCount() == 0)
             return;
         player.get()->set3dSourceAttenuation(handle, attenuationModel, attenuationRolloffFactor);
@@ -1118,8 +1237,7 @@ extern "C"
         unsigned int handle,
         float dopplerFactor)
     {
-
-        if (player.get() == nullptr || !player.get()->isInited() || 
+        if (player.get() == nullptr || !player.get()->isInited() ||
             player.get()->getSoundsCount() == 0)
             return;
         player.get()->set3dSourceDopplerFactor(handle, dopplerFactor);
@@ -1130,12 +1248,16 @@ extern "C"
     // https://stackoverflow.com/questions/17883799/how-to-handle-passing-returning-array-pointers-to-emscripten-compiled-code
     // https://stackoverflow.com/questions/50615377/how-do-you-call-a-c-function-that-takes-or-returns-a-struct-by-value-from-js-v
 
+    // call javascript from native
+    // https://emscripten.org/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#interacting-with-code-call-javascript-from-native
+
     // https://developer.mozilla.org/en-US/docs/WebAssembly/C_to_Wasm
     // Run Chromium with:
     // chromium --disable-web-security --disable-gpu --user-data-dir=~/chromeTemp
     unsigned int handle;
     unsigned int hash;
-    struct provaProvaProva{
+    struct provaProvaProva
+    {
         PlayerErrors error;
         int dummy;
     };
@@ -1148,7 +1270,8 @@ extern "C"
         return {noError, 123};
     }
 
-    FFI_PLUGIN_EXPORT void js_load() {
+    FFI_PLUGIN_EXPORT void js_load()
+    {
         printf("js_load Called\n");
         int result = loadWaveform(SoLoud::Soloud::WAVE_SQUARE, true, 0.25f, 1.0f, &hash);
         printf("loadWaveform() result: %d  hash %d\n", result, hash);
@@ -1164,24 +1287,19 @@ extern "C"
     //     function("Foo", &Foo);
     // }
 
-    FFI_PLUGIN_EXPORT void js_play(unsigned int handle) {
+    FFI_PLUGIN_EXPORT void js_play(unsigned int handle)
+    {
         printf("js_play Called\n");
         int result = play(hash, 0.1, 0.0f, false, true, 0.0, &handle);
         printf("js_play() result: %d\n", result);
     }
 
-    FFI_PLUGIN_EXPORT void js_dispose() {
+    FFI_PLUGIN_EXPORT void js_dispose()
+    {
         printf("js_dispose Called\n");
         dispose();
     }
 
-
 #ifdef __cplusplus
 }
 #endif
-
-
-
-
-
-    
