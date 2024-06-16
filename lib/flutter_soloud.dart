@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_soloud/audio_source.dart';
-import 'package:flutter_soloud/soloud_controller_web.dart';
+import 'package:flutter_soloud/soloud_controller.dart';
 import 'package:flutter_soloud/sound_hash.dart';
 import 'package:flutter_soloud/enums.dart';
 import 'package:flutter_soloud/sound_handle.dart';
@@ -16,20 +16,14 @@ class FlutterSoloud {
 
   PlayerErrors init() {
     final ret = _controller.soLoudFFI.initEngine();
-    _initializeNativeCallbacks();
+    SoLoudController().soLoudFFI.setDartEventCallbacks();
 
     debugPrint('***************** INIT result: $ret');
     return ret;
-    // return PlayerErrors.noError;
   }
 
   void sendMessage(String message, int value) {
-    SoLoudController().soLoudFFI.sendMessageToWasmWorker(message, value);
-  }
-
-  void _initializeNativeCallbacks() {
-    // Initialize callbacks.
-    // SoLoudController().soLoudFFI.setDartEventCallbacks();
+    // SoLoudController().soLoudFFI.sendMessageToWasmWorker(message, value);
   }
 
   bool isInited() {
@@ -76,6 +70,13 @@ class FlutterSoloud {
     print('GET IS VALID1');
     var ret = _controller.soLoudFFI.getIsValidVoiceHandle(handle);
     print('GET IS VALID $ret');
+    return ret;
+  }
+
+  ({PlayerErrors error, List<String> names}) getFilterParamNames(
+      int filterType) {
+    final ret = _controller.soLoudFFI.getFilterParamNames(filterType);
+    print(ret);
     return ret;
   }
 }

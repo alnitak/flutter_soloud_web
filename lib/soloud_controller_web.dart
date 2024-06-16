@@ -51,8 +51,8 @@ class SoLoudController {
   Completer? _isInitialized;
 
   ///
-  late final JSSoloudPlayer _soLoudFFI;
-  JSSoloudPlayer get soLoudFFI {
+  late final FlutterSoLoudWeb _soLoudFFI;
+  FlutterSoLoudWeb get soLoudFFI {
     if (_isInitialized?.isCompleted ?? false) {
       return _soLoudFFI;
     }
@@ -64,7 +64,7 @@ class SoLoudController {
 
   ///
   Future<void> initialize() async {
-    _soLoudFFI = JSSoloudPlayer();
+    _soLoudFFI = FlutterSoLoudWeb();
     // captureFFI = FlutterCaptureFfi.fromLookup(nativeLib.lookup);
     await JSImport.import(
         source: 'web/libflutter_soloud_plugin.js',

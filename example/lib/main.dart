@@ -1,6 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -13,8 +12,6 @@ import 'dart:async';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:flutter_soloud/sound_hash.dart';
 import 'package:flutter_soloud/sound_handle.dart';
-import 'package:flutter_soloud/enums.dart';
-import 'package:flutter_soloud/worker/js_import.dart';
 
 
 void main() {
@@ -56,9 +53,15 @@ class _MyAppState extends State<MyApp> {
               ),
               OutlinedButton(
                 onPressed: () async {
-                  _flutterSoloudPlugin.sendMessage('ciao',7777);
+                  _flutterSoloudPlugin.sendMessage('voiceEndedCallback',7777);
                 },
                 child: const Text('send to worker'),
+              ),
+              OutlinedButton(
+                onPressed: () async {
+                  _flutterSoloudPlugin.getFilterParamNames(0);
+                },
+                child: const Text('getFilterParamNames'),
               ),
               OutlinedButton(
                 onPressed: () async {

@@ -6,7 +6,9 @@
 #include "common.h"
 #endif
 
+#ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
+#endif
 
 #include "soloud/include/soloud_fft.h"
 #include "soloud_thread.h"
@@ -36,42 +38,45 @@ extern "C"
     //////////////////////////////////////////////////////////////
     /// WEB WORKER
 
-    // Receive Worker URI and store it in the WASM "Module"
+#ifdef __EMSCRIPTEN__
+    /// Create the web worker and store a global "Module.workerUri" in JS.
     FFI_PLUGIN_EXPORT void createWorkerInWasm()
     {
         printf("void createWorkerInWasm()\n");
         
         EM_ASM({
-            // Create a new Worker from the URI
-            var workerUri = "assets/packages/flutter_soloud/web/worker.dart.js";
-            console.log("creating WEB WORKER  inside EM_ASM: " +
-                "  " + workerUri);
-            Module.workerWasm = new Worker(workerUri);
+            if (!Module.workerWasm) 
+            {
+                // Create a new Worker from the URI
+                var workerUri = "assets/packages/flutter_soloud/web/worker.dart.js";
+                console.log("EM_ASM creating web worker!");
+                Module.workerWasm = new Worker(workerUri);
+            } else {
+                console.log("EM_ASM web worker already created!");
+            }
         });
     }
 
-    // Post a message with the Web Worker
+    /// Post a message with the web worker.
     FFI_PLUGIN_EXPORT void sendToWorker(const char *message, int value)
     {
-        printf("void sendToWorker() %s  %d\n", message, value);
-        
         EM_ASM({
-        if (Module.workerWasm)
-        {
-            console.log("JS SEND TO WORKER  POSTING " + UTF8ToString($0) + "  " + $1);
-            // window.voiceCallbackFromJs(value);
-            // Send the message
-            Module.workerWasm.postMessage(JSON.stringify({
-                message : UTF8ToString($0),
-                value : $1
-            }));
-        }
-        else
-        {
-            console.error('Worker not found.');
-        } }, message, value);
+            if (Module.workerWasm)
+            {
+                console.log("EM_ASM posting message " + UTF8ToString($0) + 
+                    " with value " + $1);
+                // Send the message
+                Module.workerWasm.postMessage(JSON.stringify({
+                    message : UTF8ToString($0),
+                    value : $1
+                }));
+            }
+            else
+            {
+                console.error('Worker not found.');
+            } }, message, value);
     }
-    
+#endif
 
     FFI_PLUGIN_EXPORT void nativeFree(void *pointer)
     {
@@ -86,10 +91,12 @@ extern "C"
     {
         printf("********* CPP BINDINGS handle: %u", *handle);
 
+#ifdef __EMSCRIPTEN__
         // Calling JavaScript from C/C++
         // https://emscripten.org/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#interacting-with-code-call-javascript-from-native
         // emscripten_run_script("voiceEndedCallbackJS('1234')");
         sendToWorker("voiceEndedCallback", *handle);
+#endif
 
         if (dartVoiceEndedCallback == nullptr)
             return;
@@ -950,7 +957,7 @@ extern "C"
         std::vector<std::string> pNames = player.get()->mFilters.getFilterParamNames(filterType);
         *paramsCount = static_cast<int>(pNames.size());
         *names = (char *)malloc(sizeof(char *) * *paramsCount);
-        printf("C  paramsCount: %p  **names: %p\n", paramsCount, names);
+        // printf("C  paramsCount: %p  **names: %p\n", paramsCount, names);
         for (int i = 0; i < *paramsCount; i++)
         {
             names[i] = strdup(pNames[i].c_str());
