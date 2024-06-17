@@ -1,6 +1,6 @@
 # flutter_soloud
 
-Only the web version of [flutter_soloud](https://github.com/alnitak/flutter_soloud) package.
+Testing implementation of the web version of [flutter_soloud](https://github.com/alnitak/flutter_soloud) package.
 
 ## Description
 
@@ -24,3 +24,4 @@ Refer to the issue [#1](https://github.com/alnitak/flutter_soloud_web/issues/1)
 
 - [web audio is not supported inside a web worker](https://stackoverflow.com/questions/67949831/is-there-a-way-to-use-audiocontext-in-a-web-worker)
 - [AudioWorkletNode in miniaudio](https://github.com/mackron/miniaudio/issues/597#issuecomment-1445060662)
+Refer to the issue [#2](https://github.com/alnitak/flutter_soloud_web/issues/2)
