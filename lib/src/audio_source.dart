@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:flutter_soloud/sound_handle.dart';
-import 'package:flutter_soloud/sound_hash.dart';
+import 'package:flutter_soloud/src/sound_handle.dart';
+import 'package:flutter_soloud/src/sound_hash.dart';
 import 'package:meta/meta.dart';
 
 /// the type sent back to the user when a sound event occurs

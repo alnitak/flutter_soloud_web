@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ffi' as ffi;
 import 'dart:io';
 
@@ -13,7 +14,13 @@ class SoLoudController {
     initialize();
   }
 
+  var _isInitialized = false;
+
+  bool get isInitialized => _isInitialized;
+
   static SoLoudController? _instance;
+
+  Completer<SoLoudController>? completer;
 
   ///
   late ffi.DynamicLibrary nativeLib;
@@ -35,5 +42,11 @@ class SoLoudController {
                 : ffi.DynamicLibrary.process()));
     soLoudFFI = FlutterSoLoudFfi.fromLookup(nativeLib.lookup);
     // captureFFI = FlutterCaptureFfi.fromLookup(nativeLib.lookup);
+    _isInitialized = true;
+  }
+
+  Future<void> initWebJs() async {
+    throw UnimplementedError(
+        'initWebJs() must be called only on the web platform!');
   }
 }

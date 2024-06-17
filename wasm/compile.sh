@@ -11,6 +11,10 @@ rm -f ../../web/libflutter_soloud_plugin.*
 #-g3 #keep debug info, including JS whitespace, function names
 #-sSTACK_SIZE=1048576 -sALLOW_MEMORY_GROWTH
 
+# disable the asynchronous startup/loading behaviour
+# -s BINARYEN_ASYNC_COMPILATION=0
+# https://github.com/emscripten-core/emscripten/issues/5352#issuecomment-312384604
+
 # https://emscripten.org/docs/tools_reference/settings_reference.html
 
 # -DMA_ENABLE_AUDIO_WORKLETS -sAUDIO_WORKLET=1 -sWASM_WORKERS=1 -sASYNCIFY

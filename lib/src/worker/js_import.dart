@@ -8,7 +8,7 @@ class JSImport {
     required String source,
     String? package,
     bool defer = false,
-    bool async = true,
+    bool async = false,
     String? type,
   }) async {
     print('################ JSImport()1  $importedSources');
@@ -38,6 +38,7 @@ class JSImport {
       head.appendChild(libraryElement);
       print('################ JSImport()5');
       await libraryElement.onLoad.first;
+      print('################ JSImport()5b');
       importedSources.add(source);
       print('################ JSImport()6  $importedSources');
     } catch (e) {

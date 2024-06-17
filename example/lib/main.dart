@@ -6,15 +6,17 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_soloud/audio_source.dart';
+import 'package:flutter_soloud/src/audio_source.dart';
 import 'dart:async';
 
 import 'package:flutter_soloud/flutter_soloud.dart';
-import 'package:flutter_soloud/sound_hash.dart';
-import 'package:flutter_soloud/sound_handle.dart';
+import 'package:flutter_soloud/src/sound_handle.dart';
+import 'package:flutter_soloud/src/sound_hash.dart';
+import 'package:flutter_soloud/src/soloud.dart';
+import 'package:flutter_soloud/src/enums.dart';
+import 'package:flutter_soloud/src/filter_params.dart';
 
-
-void main() {
+void main() async {
   runApp(const MyApp());
 }
 
@@ -26,13 +28,16 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final _flutterSoloudPlugin = FlutterSoloud();
+  // final _flutterSoloudPlugin = FlutterSoloudWeb();
+  final _flutterSoloudPlugin = SoLoud.instance;
   late AudioSource audioSource;
   late SoundHash soundHash;
   late SoundHandle soundHandle;
 
-  Future<void> initWorker() async {
-
+  @override
+  void initState() {
+    super.initState();
+    _flutterSoloudPlugin.init();
   }
 
   @override
@@ -53,19 +58,25 @@ class _MyAppState extends State<MyApp> {
               ),
               OutlinedButton(
                 onPressed: () async {
-                  _flutterSoloudPlugin.sendMessage('voiceEndedCallback',7777);
+                  // _flutterSoloudPlugin.sendMessage('voiceEndedCallback',7777);
                 },
                 child: const Text('send to worker'),
               ),
               OutlinedButton(
                 onPressed: () async {
-                  _flutterSoloudPlugin.getFilterParamNames(0);
+                  _flutterSoloudPlugin
+                      .getFilterParamNames(FilterType.biquadResonantFilter);
                 },
                 child: const Text('getFilterParamNames'),
               ),
               OutlinedButton(
                 onPressed: () async {
-                  audioSource = _flutterSoloudPlugin.loadWaveform();
+                  audioSource = await _flutterSoloudPlugin.loadWaveform(
+                    WaveForm.bounce,
+                    true,
+                    1,
+                    1,
+                  );
                   soundHash = audioSource.soundHash;
                   print('main loadWaveform audioSource: $soundHash');
                 },
@@ -98,20 +109,21 @@ class _MyAppState extends State<MyApp> {
                 child: const Text('load mem'),
               ),
               OutlinedButton(
-                onPressed: () async{
-                  final byteData = await rootBundle.load('assets/explosion.mp3');
+                onPressed: () async {
+                  final byteData =
+                      await rootBundle.load('assets/explosion.mp3');
                   final buffer = byteData.buffer;
-                  var sound = await _flutterSoloudPlugin.loadMem(
-                      'assets/explosion.mp3',
-                      buffer.asUint8List(),
-                    );
-                  soundHash = sound.soundHash;
+                  audioSource = await _flutterSoloudPlugin.loadMem(
+                    'assets/explosion.mp3',
+                    buffer.asUint8List(),
+                  );
+                  soundHash = audioSource.soundHash;
                 },
                 child: const Text('loadMem explosion'),
               ),
               OutlinedButton(
-                onPressed: () {
-                  soundHandle = _flutterSoloudPlugin.play(soundHash);
+                onPressed: () async {
+                  soundHandle = await _flutterSoloudPlugin.play(audioSource);
                 },
                 child: const Text('play'),
               ),
@@ -131,7 +143,6 @@ class _MyAppState extends State<MyApp> {
                 child: const Text('dispose'),
               ),
               const SizedBox(height: 20),
-
               const SizedBox(height: 20),
             ],
           ),

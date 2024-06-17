@@ -1,7 +1,7 @@
 import 'dart:convert' show jsonDecode;
 
-import 'package:flutter_soloud/bindings_player_web.dart';
-import 'package:flutter_soloud/worker/worker_web.dart'
+import 'package:flutter_soloud/src/bindings_player_web.dart';
+import 'package:flutter_soloud/src/worker/worker_web.dart'
     if (dart.library.io) 'package:flutter_soloud/worker/worker_io.dart';
 
 void doJob() async {

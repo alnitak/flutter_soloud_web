@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 import 'dart:js_interop';
 
-import 'package:flutter_soloud/enums.dart';
-import 'package:flutter_soloud/sound_hash.dart';
-import 'package:flutter_soloud/sound_handle.dart';
+import 'package:flutter_soloud/src/enums.dart';
+import 'package:flutter_soloud/src/sound_hash.dart';
+import 'package:flutter_soloud/src/sound_handle.dart';
 
 @JS('Module._malloc')
 external int _malloc(int bytesCount);

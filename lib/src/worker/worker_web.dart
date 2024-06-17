@@ -7,7 +7,7 @@ import 'dart:convert' show jsonDecode, jsonEncode;
 import 'worker.dart' as base;
 import 'dart:html' as html;
 import 'package:web/web.dart' as web;
-import 'package:flutter_soloud/worker/js_import.dart';
+import 'package:flutter_soloud/src/worker/js_import.dart';
 
 // Masked type: ServiceWorkerGlobalScope
 @JS('self')
@@ -65,11 +65,6 @@ class WorkerController implements base.WorkerController {
       print('§§§§§§§§§§§§§§§§§§§§§§§§§§§  ${event.type}');
       controller._outputController?.add(event.data.dartify());
     })).toJS;
-
-    /// Load .js in main isolate
-    JSImport.import(
-        source: 'web/libflutter_soloud_plugin.js',
-        package: 'flutter_soloud');
 
     return controller;
   }

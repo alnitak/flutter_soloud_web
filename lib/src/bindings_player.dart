@@ -1,18 +1,17 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:flutter_soloud/enums.dart';
-import 'package:flutter_soloud/sound_hash.dart';
-import 'package:flutter_soloud/sound_handle.dart';
+import 'package:flutter_soloud/src/enums.dart';
+import 'package:flutter_soloud/src/sound_hash.dart';
+import 'package:flutter_soloud/src/sound_handle.dart';
 import 'package:meta/meta.dart';
 
-export 'package:flutter_soloud/bindings_player_ffi.dart'
-    if (dart.library.html) 'package:flutter_soloud/bindings_player_web.dart';
+export 'package:flutter_soloud/src/bindings_player_ffi.dart'
+    if (dart.library.html) 'package:flutter_soloud/src/bindings_player_web.dart';
 
 /// Abstract class defining the interface for the platform-specific
 /// implementations.
 abstract class FlutterSoLoud {
-
   /// Controller to listen to voice ended events.
   late final StreamController<int> voiceEndedEventController =
       StreamController.broadcast();

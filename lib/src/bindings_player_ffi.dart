@@ -9,10 +9,10 @@ import 'dart:ffi' as ffi;
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
-import 'package:flutter_soloud/bindings_player.dart';
-import 'package:flutter_soloud/enums.dart';
-import 'package:flutter_soloud/sound_handle.dart';
-import 'package:flutter_soloud/sound_hash.dart';
+import 'package:flutter_soloud/src/bindings_player.dart';
+import 'package:flutter_soloud/src/enums.dart';
+import 'package:flutter_soloud/src/sound_handle.dart';
+import 'package:flutter_soloud/src/sound_hash.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
