@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'dart:js_interop';
 
-import 'package:flutter_soloud/src/bindings_player.dart';
+import 'package:flutter_soloud/src/bindings/bindings_player.dart';
 import 'package:web/web.dart' as web;
 
 import 'package:flutter_soloud/src/enums.dart';
@@ -101,7 +101,8 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     LoadMode mode,
   ) {
     throw UnimplementedError(
-        '[loadFile] in not supported on the web platfom! Please use [loadMem].');
+        '[loadFile] in not supported on the web platfom! '
+        'Please use [loadMem].');
   }
 
   @override

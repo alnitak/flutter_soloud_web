@@ -1,38 +1,15 @@
-import 'dart:async';
 import 'dart:ffi' as ffi;
 import 'dart:io';
 
-// import 'bindings_capture_ffi.dart';
+import 'bindings_capture_ffi.dart';
 import 'bindings_player_ffi.dart';
 
 /// Controller that expose method channel and FFI
 class SoLoudController {
-  ///
   factory SoLoudController() => _instance ??= SoLoudController._();
 
   SoLoudController._() {
-    initialize();
-  }
-
-  var _isInitialized = false;
-
-  bool get isInitialized => _isInitialized;
-
-  static SoLoudController? _instance;
-
-  Completer<SoLoudController>? completer;
-
-  ///
-  late ffi.DynamicLibrary nativeLib;
-
-  ///
-  late final FlutterSoLoudFfi soLoudFFI;
-
-  ///
-  // late final FlutterCaptureFfi captureFFI;
-
-  ///
-  void initialize() {
+    /// Initialize lib
     nativeLib = Platform.isLinux
         ? ffi.DynamicLibrary.open('libflutter_soloud_plugin.so')
         : (Platform.isAndroid
@@ -41,12 +18,15 @@ class SoLoudController {
                 ? ffi.DynamicLibrary.open('flutter_soloud_plugin.dll')
                 : ffi.DynamicLibrary.process()));
     soLoudFFI = FlutterSoLoudFfi.fromLookup(nativeLib.lookup);
-    // captureFFI = FlutterCaptureFfi.fromLookup(nativeLib.lookup);
-    _isInitialized = true;
+    captureFFI = FlutterCaptureFfi.fromLookup(nativeLib.lookup);
   }
 
-  Future<void> initWebJs() async {
-    throw UnimplementedError(
-        'initWebJs() must be called only on the web platform!');
-  }
+  static SoLoudController? _instance;
+
+  late ffi.DynamicLibrary nativeLib;
+
+  late final FlutterSoLoudFfi soLoudFFI;
+
+  late final FlutterCaptureFfi captureFFI;
+
 }

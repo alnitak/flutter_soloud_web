@@ -9,7 +9,7 @@ import 'package:flutter_soloud/src/audio_source.dart';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/exceptions/exceptions.dart';
 import 'package:flutter_soloud/src/filter_params.dart';
-import 'package:flutter_soloud/src/soloud_controller.dart';
+import 'package:flutter_soloud/src/bindings/soloud_controller.dart';
 import 'package:flutter_soloud/src/sound_handle.dart';
 import 'package:flutter_soloud/src/sound_hash.dart';
 import 'package:flutter_soloud/src/utils/loader.dart';
@@ -213,14 +213,6 @@ interface class SoLoud {
     /// buffer 2048
     // TODO(marco): add engine initialization parameters
     _log.finest('init() called');
-
-    if (kIsWeb) {
-      /// See the comment in `soloud_controller_web.dart` for the `initWebJs()`
-      /// to have an explaination to this.
-      if (!(_controller.completer?.isCompleted ?? false)) {
-        await _controller.initWebJs();
-      }
-    }
 
     // if `!isInitialized` but the engine is initialized in native, therefore
     // the developer may have carried out a hot reload which does not imply

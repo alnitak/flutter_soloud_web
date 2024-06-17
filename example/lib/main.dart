@@ -13,6 +13,7 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:flutter_soloud/src/sound_handle.dart';
 import 'package:flutter_soloud/src/sound_hash.dart';
 import 'package:flutter_soloud/src/soloud.dart';
+import 'package:flutter_soloud/src/soloud_capture.dart';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/filter_params.dart';
 
@@ -30,6 +31,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   // final _flutterSoloudPlugin = FlutterSoloudWeb();
   final _flutterSoloudPlugin = SoLoud.instance;
+  final _flutterSoloudCapturePlugin = SoLoudCapture.instance;
   late AudioSource audioSource;
   late SoundHash soundHash;
   late SoundHandle soundHandle;
@@ -50,6 +52,22 @@ class _MyAppState extends State<MyApp> {
         body: Center(
           child: Column(
             children: [
+              OutlinedButton(
+                onPressed: () async {
+                  final e = _flutterSoloudCapturePlugin.initialize();
+                  print('CAPTURE initialize $e');
+                },
+                child: const Text('init capture'),
+              ),
+              OutlinedButton(
+                onPressed: () async {
+                  final e = _flutterSoloudCapturePlugin.startCapture();
+                  print('CAPTURE start $e');
+                },
+                child: const Text('init capture'),
+              ),
+              const SizedBox(height: 20),
+
               OutlinedButton(
                 onPressed: () async {
                   _flutterSoloudPlugin.init();

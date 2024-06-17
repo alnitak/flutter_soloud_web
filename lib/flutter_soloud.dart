@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_soloud/src/audio_source.dart';
 import 'package:flutter_soloud/src/filter_params.dart';
-import 'package:flutter_soloud/src/soloud_controller.dart';
+import 'package:flutter_soloud/src/bindings/soloud_controller.dart';
 import 'package:flutter_soloud/src/sound_hash.dart';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/sound_handle.dart';
