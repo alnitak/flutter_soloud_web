@@ -5,7 +5,6 @@ import 'package:flutter_soloud/src/worker/worker_web.dart'
     if (dart.library.io) 'package:flutter_soloud/worker/worker_io.dart';
 
 void doJob() async {
-
   print('Worker created.\n');
   var worker = Worker(args: null);
   worker.onReceive().listen((data) {
@@ -20,10 +19,9 @@ void doJob() async {
             FlutterSoLoudWeb().voiceCallbackFromJs(parseMap["value"]);
           }
         } catch (e) {
-          print("Received data from WASM worker but it's not a String!");
+          print("Received data from WASM worker but it's not a String!\n");
         }
     }
-
   });
 }
 

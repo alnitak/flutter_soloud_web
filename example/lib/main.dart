@@ -39,7 +39,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _flutterSoloudPlugin.init();
+    // _flutterSoloudPlugin.init();
   }
 
   @override
@@ -61,10 +61,17 @@ class _MyAppState extends State<MyApp> {
               ),
               OutlinedButton(
                 onPressed: () async {
+                  final e = _flutterSoloudCapturePlugin.listCaptureDevices();
+                  // print('CAPTURE list devices $e');
+                },
+                child: const Text('list devices'),
+              ),
+              OutlinedButton(
+                onPressed: () async {
                   final e = _flutterSoloudCapturePlugin.startCapture();
                   print('CAPTURE start $e');
                 },
-                child: const Text('init capture'),
+                child: const Text('start capture'),
               ),
               const SizedBox(height: 20),
 

@@ -7807,7 +7807,7 @@
             value.add$1(0, t2);
           }
         } catch (exception) {
-          A.print("Received data from WASM worker but it's not a String!");
+          A.print("Received data from WASM worker but it's not a String!\n");
         }
     },
     $signature: 5

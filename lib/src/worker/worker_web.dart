@@ -7,7 +7,6 @@ import 'dart:convert' show jsonDecode, jsonEncode;
 import 'worker.dart' as base;
 import 'dart:html' as html;
 import 'package:web/web.dart' as web;
-import 'package:flutter_soloud/src/worker/js_import.dart';
 
 // Masked type: ServiceWorkerGlobalScope
 @JS('self')
