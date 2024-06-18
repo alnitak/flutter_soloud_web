@@ -38,11 +38,16 @@ external JSFunction _ccall(
 
 // TODO(marco): implment
 @JS('Module._listCaptureDevices')
-external void _listCaptureDevices(int structPtr, int nDevicePtr);
+external void _listCaptureDevices(
+    int namesPtr, int isDefaultPtr, int nDevicePtr);
 
 // TODO(marco): implment
 @JS('Module._freeListCaptureDevices')
-external void _freeListCaptureDevices();
+external void _freeListCaptureDevices(
+  int namesPtr,
+  int isDefaultPtr,
+  int nDevice,
+);
 
 @JS('Module._initCapture')
 external int _initCapture(int deviceID);
@@ -80,39 +85,33 @@ class FlutterCaptureWeb extends FlutterCapture {
 
   @override
   List<CaptureDevice> listCaptureDevices() {
-    /// allocate 50 devices and for each an int and a string
-    final structPtr = malloc(50 * (4 + 150));
+    /// allocate 50 device strings
+    final namesPtr = malloc(50 * 150);
+    final isDefaultPtr = malloc(50 * 4);
     final nDevicesPtr = malloc(4); // 4 bytes for an int
 
     _listCaptureDevices(
-      structPtr,
+      namesPtr,
+      isDefaultPtr,
       nDevicesPtr,
     );
 
     final nDevices = getValue(nDevicesPtr, '*');
-    print("LIST INPUT DEVICES nDevices: $nDevices");
     final devices = <CaptureDevice>[];
-    var offsetPtr = 0;
     for (var i = 0; i < nDevices; i++) {
-      final namePtr = getValue(structPtr + offsetPtr, '*');
-      if (i == 0) {
-        for (var n = 0; n < 30; n++) {
-          final s = getValue(structPtr + i, 'i8');
-          print('@@@@  $s');
-        }
-      }
+      final namePtr = getValue(namesPtr + i * 4, '*');
       final name = _utf8ToString(namePtr);
-      offsetPtr += name.length;
+      final isDefault = getValue(getValue(isDefaultPtr + i * 4, '*'), '*');
 
-      final isDefault = getValue(structPtr + offsetPtr, '*');
-      offsetPtr += 4;
-
-      print("LIST INPUT DEVICES $i: isDefault: $isDefault  name: $name");
       devices.add(CaptureDevice(name, isDefault == 1));
     }
 
+    _freeListCaptureDevices(namesPtr, isDefaultPtr, nDevices);
+
     free(nDevicesPtr);
-    free(structPtr);
+    free(isDefaultPtr);
+    free(namesPtr);
+
     return devices;
   }
 
@@ -148,7 +147,7 @@ class FlutterCaptureWeb extends FlutterCapture {
   }
 
   @override
-  CaptureErrors getCaptureAudioTexture2D(samples) {
+  CaptureErrors getCaptureAudioTexture2D(dynamic samples) {
     throw UnimplementedError('No yet supported on the web platfom!');
   }
 

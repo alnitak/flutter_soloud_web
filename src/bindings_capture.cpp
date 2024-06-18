@@ -17,31 +17,39 @@ extern "C" {
 Capture capture;
 std::unique_ptr<Analyzer> analyzerCapture = std::make_unique<Analyzer>(256);
 
-FFI_PLUGIN_EXPORT void listCaptureDevices(struct CaptureDevice **devices, int *n_devices)
+FFI_PLUGIN_EXPORT void listCaptureDevices(
+    char **devicesName, 
+    int **isDefault, 
+    int *n_devices)
 {
     std::vector<CaptureDevice> d = capture.listCaptureDevices();
+
     int numDevices = 0;
     for (int i=0; i<(int)d.size(); i++)
     {
         bool hasSpecialChar = false;
         /// check if the device name has some strange chars (happens on linux)
         for (int n=0; n<5; n++) if (d[i].name[n] < 0x20) hasSpecialChar = true;
-        if (strlen(d[i].name) <= 5 || hasSpecialChar) break;
+        if (strlen(d[i].name) <= 5 || hasSpecialChar) continue;
 
-        devices[i] = (CaptureDevice*)malloc(sizeof(CaptureDevice));
-        devices[i]->name = strdup(d[i].name);
-        devices[i]->isDefault = d[i].isDefault;
+        devicesName[i] = strdup(d[i].name);
+        isDefault[i] = (int*)malloc(sizeof(int*));
+        *isDefault[i] = d[i].isDefault;
 
         numDevices++;
     }
     *n_devices = numDevices;
 }
-FFI_PLUGIN_EXPORT void freeListCaptureDevices(struct CaptureDevice **devices, int n_devices)
+
+FFI_PLUGIN_EXPORT void freeListCaptureDevices(
+    char **devicesName, 
+    int **isDefault, 
+    int n_devices)
 {
     for (int i=0; i<n_devices; i++)
     {
-        free(devices[i]->name);
-        free(devices[i]);
+        free(devicesName[i]);
+        free(isDefault[i]);
     }
 }
 

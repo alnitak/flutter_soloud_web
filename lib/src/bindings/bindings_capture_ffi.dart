@@ -31,52 +31,63 @@ class FlutterCaptureFfi extends FlutterCapture {
   @override
   List<CaptureDevice> listCaptureDevices() {
     List<CaptureDevice> ret = [];
-    ffi.Pointer<ffi.Pointer<_CaptureDevice>> devices =
-        calloc(ffi.sizeOf<_CaptureDevice>());
+    ffi.Pointer<ffi.Pointer<ffi.Char>> deviceNames =
+        calloc(ffi.sizeOf<ffi.Pointer<ffi.Pointer<ffi.Char>>>() * 50);
+    ffi.Pointer<ffi.Pointer<ffi.Int>> deviceIsDefault =
+        calloc(ffi.sizeOf<ffi.Pointer<ffi.Pointer<ffi.Int>>>() * 50);
     ffi.Pointer<ffi.Int> nDevices = calloc();
 
     _listCaptureDevices(
-      devices,
+      deviceNames,
+      deviceIsDefault,
       nDevices,
     );
 
     int ndev = nDevices.value;
     for (int i = 0; i < ndev; i++) {
-      var s = (devices + i).value.ref.name.cast<Utf8>().toDartString();
-      var n = (devices + i).value.ref.isDefault;
+      var s1 = (deviceNames + i).value;
+      var s = s1.cast<Utf8>().toDartString();
+      var n1 = (deviceIsDefault + i).value;
+      var n = n1.value;
       ret.add(CaptureDevice(s, n == 1 ? true : false));
     }
 
-    /// free allocated memory done in C
-    /// this work on linux and android, not on win
+    /// Free allocated memory done in C.
+    /// This work on all platforms but not on win.
     // for (int i = 0; i < ndev; i++) {
     //   calloc.free(devices.elementAt(i).value.ref.name);
     //   calloc.free(devices.elementAt(i).value);
     // }
     _freeListCaptureDevices(
-      devices,
+      deviceNames,
+      deviceIsDefault,
       ndev,
     );
 
-    calloc.free(devices);
+    calloc.free(deviceNames);
     calloc.free(nDevices);
     return ret;
   }
 
   late final _listCaptureDevicesPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Pointer<ffi.Pointer<_CaptureDevice>>,
+          ffi.Void Function(
+              ffi.Pointer<ffi.Pointer<ffi.Char>>,
+              ffi.Pointer<ffi.Pointer<ffi.Int>>,
               ffi.Pointer<ffi.Int>)>>('listCaptureDevices');
   late final _listCaptureDevices = _listCaptureDevicesPtr.asFunction<
-      void Function(
-          ffi.Pointer<ffi.Pointer<_CaptureDevice>>, ffi.Pointer<ffi.Int>)>();
+      void Function(ffi.Pointer<ffi.Pointer<ffi.Char>>,
+          ffi.Pointer<ffi.Pointer<ffi.Int>>, ffi.Pointer<ffi.Int>)>();
 
   late final _freeListCaptureDevicesPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Pointer<ffi.Pointer<_CaptureDevice>>,
+          ffi.Void Function(
+              ffi.Pointer<ffi.Pointer<ffi.Char>>,
+              ffi.Pointer<ffi.Pointer<ffi.Int>>,
               ffi.Int)>>('freeListCaptureDevices');
   late final _freeListCaptureDevices = _freeListCaptureDevicesPtr.asFunction<
-      void Function(ffi.Pointer<ffi.Pointer<_CaptureDevice>>, int)>();
+      void Function(ffi.Pointer<ffi.Pointer<ffi.Char>>,
+          ffi.Pointer<ffi.Pointer<ffi.Int>>, int)>();
 
   @override
   CaptureErrors initCapture(int deviceID) {
@@ -136,9 +147,7 @@ class FlutterCaptureFfi extends FlutterCapture {
   late final _stopCapture = _stopCapturePtr.asFunction<int Function()>();
 
   @override
-  CaptureErrors getCaptureAudioTexture2D(
-    dynamic samples
-  ) {
+  CaptureErrors getCaptureAudioTexture2D(dynamic samples) {
     int ret = _getCaptureAudioTexture2D(samples);
     return CaptureErrors.values[ret];
   }
