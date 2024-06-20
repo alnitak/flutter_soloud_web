@@ -4,17 +4,16 @@
 // ignore_for_file: avoid_positional_boolean_parameters,require_trailing_commas
 // ignore_for_file: public_member_api_docs
 
-import 'dart:async';
 import 'dart:ffi' as ffi;
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter_soloud/src/bindings/bindings_player.dart';
+import 'package:flutter_soloud/src/bindings/ffi_data.dart';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/sound_handle.dart';
 import 'package:flutter_soloud/src/sound_hash.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 
 typedef DartVoiceEndedCallbackT
     = ffi.Pointer<ffi.NativeFunction<DartVoiceEndedCallbackTFunction>>;
@@ -66,13 +65,9 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
     ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName) lookup,
   ) : _lookup = lookup;
 
-  ///////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////
+  // ////////////////////////////////////////////////
+  // Callbacks impl
+  // ////////////////////////////////////////////////
 
   void _voiceEndedCallback(ffi.Pointer<ffi.UnsignedInt> handle) {
     _log.finest(() => 'VOICE ENDED EVENT handle: ${handle.value}');
@@ -145,14 +140,9 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
       void Function(DartVoiceEndedCallbackT, DartFileLoadedCallbackT,
           DartStateChangedCallbackT)>();
 
-  ///////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////
-
+  // ////////////////////////////////////////////////
+  // Navtive bindings
+  // ////////////////////////////////////////////////
 
   /// When allocating memory in C code, more attention must be given when
   /// we are on Windows OS. It's not good to call `calloc.free()` because
@@ -587,8 +577,8 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
       _setFftSmoothingPtr.asFunction<void Function(double)>();
 
   @override
-  void getAudioTexture(dynamic samples) {
-    return _getAudioTexture(samples as ffi.Pointer<ffi.Float>);
+  void getAudioTexture(FfiData samples) {
+    return _getAudioTexture(samples.data1D);
   }
 
   late final _getAudioTexturePtr =
@@ -599,9 +589,11 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
       _getAudioTexturePtr.asFunction<void Function(ffi.Pointer<ffi.Float>)>();
 
   @override
-  PlayerErrors getAudioTexture2D(dynamic samples) {
-    if (samples as ffi.Pointer<ffi.Pointer<ffi.Float>> == ffi.nullptr) return PlayerErrors.nullPointer;
-    final ret = _getAudioTexture2D(samples);
+  PlayerErrors getAudioTexture2D(FfiData samples) {
+    if (samples.isEmpty2D) {
+      return PlayerErrors.nullPointer;
+    }
+    final ret = _getAudioTexture2D(samples.data2D);
     return PlayerErrors.values[ret];
   }
 
@@ -897,9 +889,9 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
   late final _oscillateGlobalVolume = _oscillateGlobalVolumePtr
       .asFunction<int Function(double, double, double)>();
 
-  /////////////////////////////////////////
-  /// Filters
-  /////////////////////////////////////////
+  // ///////////////////////////////////////
+  //  Filters
+  // ///////////////////////////////////////
 
   @override
   ({PlayerErrors error, int index}) isFilterActive(int filterType) {

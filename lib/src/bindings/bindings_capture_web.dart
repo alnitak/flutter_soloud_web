@@ -36,12 +36,10 @@ external JSFunction _ccall(
   JSArray<JSAny> args,
 );
 
-// TODO(marco): implment
 @JS('Module._listCaptureDevices')
 external void _listCaptureDevices(
     int namesPtr, int isDefaultPtr, int nDevicePtr);
 
-// TODO(marco): implment
 @JS('Module._freeListCaptureDevices')
 external void _freeListCaptureDevices(
   int namesPtr,

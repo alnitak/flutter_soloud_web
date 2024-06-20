@@ -1,10 +1,11 @@
+import 'package:flutter_soloud/src/bindings/ffi_data.dart';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:meta/meta.dart';
 
 export 'package:flutter_soloud/src/bindings/bindings_capture_ffi.dart'
-    if (dart.library.html) 
-      'package:flutter_soloud/src/bindings/bindings_capture_web.dart';
+    if (dart.library.html) 'package:flutter_soloud/src/bindings/bindings_capture_web.dart';
 
+@experimental
 abstract class FlutterCapture {
   @mustBeOverridden
   List<CaptureDevice> listCaptureDevices();
@@ -28,7 +29,7 @@ abstract class FlutterCapture {
   CaptureErrors stopCapture();
 
   @mustBeOverridden
-  CaptureErrors getCaptureAudioTexture2D(dynamic samples);
+  CaptureErrors getCaptureAudioTexture2D(FfiData samples);
 
   @mustBeOverridden
   CaptureErrors setCaptureFftSmoothing(double smooth);

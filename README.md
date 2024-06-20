@@ -13,7 +13,8 @@ In the `wasm` directory, there is a `compile` script that generates the `.js` an
 The 2 generated files `libflutter_soloud_plugin.js` and `libflutter_soloud_plugin.wasm` now should be copied to the `example/web` directory.
 
 In the `<body>` section of `example/web/index.html`, add the following line:
-`<script src="libflutter_soloud_plugin.js" type="application/javascript"></script>`
+`<script src="assets/packages/flutter_soloud/web/libflutter_soloud_plugin.js" defer></script>`
+
     
 Now the JS lib with all SoLoud bindings is ready to be used in the web app.
 The bindings are in `flutter_soloud.dart`.

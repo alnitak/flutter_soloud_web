@@ -1,5 +1,6 @@
 // import 'dart:ffi' as ffi;
 
+import 'package:flutter_soloud/src/bindings/ffi_data.dart';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/soloud.dart';
 import 'package:flutter_soloud/src/bindings/soloud_controller.dart';
@@ -83,30 +84,28 @@ interface class SoLoudCapture {
   ///
   /// Return [CaptureErrors.captureNoError] if no error.
   ///
-  CaptureErrors getCaptureAudioTexture2D(
-    /* ffi.Pointer<ffi.Pointer<ffi.Float>> */ dynamic audioData,
-  ) {
-    // if (!isCaptureInited || audioData == ffi.nullptr) {
-    //   _log.severe(
-    //     () => 'getCaptureAudioTexture2D(): ${CaptureErrors.captureNotInited}',
-    //   );
-    //   return CaptureErrors.captureNotInited;
-    // }
+  CaptureErrors getCaptureAudioTexture2D(FfiData audioData) {
+    if (!isCaptureInited || audioData.isEmpty2D) {
+      _log.severe(
+        () => 'getCaptureAudioTexture2D(): ${CaptureErrors.captureNotInited}',
+      );
+      return CaptureErrors.captureNotInited;
+    }
 
-    // final ret =
-    //     SoLoudController().captureFFI.getCaptureAudioTexture2D(audioData);
-    // _logCaptureError(ret, from: 'getCaptureAudioTexture2D() result');
+    final ret =
+        SoLoudController().captureFFI.getCaptureAudioTexture2D(audioData);
+    _logCaptureError(ret, from: 'getCaptureAudioTexture2D() result');
 
-    // if (ret != CaptureErrors.captureNoError) {
-    //   return ret;
-    // }
-    // if (audioData.value == ffi.nullptr) {
-    //   _logCaptureError(
-    //     CaptureErrors.nullPointer,
-    //     from: 'getCaptureAudioTexture2D() result',
-    //   );
-    //   return CaptureErrors.nullPointer;
-    // }
+    if (ret != CaptureErrors.captureNoError) {
+      return ret;
+    }
+    if (audioData.isEmpty2D) {
+      _logCaptureError(
+        CaptureErrors.nullPointer,
+        from: 'getCaptureAudioTexture2D() result',
+      );
+      return CaptureErrors.nullPointer;
+    }
     return CaptureErrors.captureNoError;
   }
 

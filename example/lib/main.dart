@@ -16,8 +16,14 @@ import 'package:flutter_soloud/src/soloud.dart';
 import 'package:flutter_soloud/src/soloud_capture.dart';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/filter_params.dart';
+import 'package:flutter_soloud/src/bindings/ffi_data.dart';
+import 'package:flutter_soloud_example/bars.dart';
 
 void main() async {
+  await SoLoud.instance.init();
+  SoLoudCapture.instance.initialize();
+  SoLoud.instance.setVisualizationEnabled(true);
+
   runApp(const MyApp());
 }
 
@@ -35,11 +41,12 @@ class _MyAppState extends State<MyApp> {
   late AudioSource audioSource;
   late SoundHash soundHash;
   late SoundHandle soundHandle;
+  FfiData audioData = FfiData(GetSamplesFrom.player, GetSamplesKind.texture);
 
   @override
-  void initState() {
-    super.initState();
-    // _flutterSoloudPlugin.init();
+  void dispose() {
+    audioData.dispose();
+    super.dispose();
   }
 
   @override
@@ -54,15 +61,16 @@ class _MyAppState extends State<MyApp> {
             children: [
               OutlinedButton(
                 onPressed: () async {
-                  final e = _flutterSoloudCapturePlugin.initialize();
-                  print('CAPTURE initialize $e');
-                },
-                child: const Text('init capture'),
-              ),
-              OutlinedButton(
-                onPressed: () async {
                   final e = _flutterSoloudCapturePlugin.listCaptureDevices();
-                  // print('CAPTURE list devices $e');
+                  final devices = StringBuffer();
+                  for (var element in e) {
+                    devices.write(element.isDefault ? 'X - ' : '  - ');
+                    devices.write(element.name);
+                    devices.write('\n');
+                  }
+                  devices.write(null);
+
+                  print('CAPTURE list devices:\n$devices');
                 },
                 child: const Text('list devices'),
               ),
@@ -74,13 +82,16 @@ class _MyAppState extends State<MyApp> {
                 child: const Text('start capture'),
               ),
               const SizedBox(height: 20),
-
-              OutlinedButton(
-                onPressed: () async {
-                  _flutterSoloudPlugin.init();
-                },
-                child: const Text('init'),
-              ),
+              ////////////////////////////////////////
+              ////////////////////////////////////////
+              ////////////////////////////////////////
+              // OutlinedButton(
+              //   onPressed: () async {
+              //     await _flutterSoloudPlugin.init();
+              //     _flutterSoloudPlugin.setVisualizationEnabled(true);
+              //   },
+              //   child: const Text('init'),
+              // ),
               OutlinedButton(
                 onPressed: () async {
                   // _flutterSoloudPlugin.sendMessage('voiceEndedCallback',7777);
@@ -115,19 +126,19 @@ class _MyAppState extends State<MyApp> {
                     if (result != null && result.files.isNotEmpty) {
                       final fileName = result.files.first.name;
                       final fileBytes = result.files.first.bytes;
-                      var sound = await _flutterSoloudPlugin.loadMem(
+                      audioSource = await _flutterSoloudPlugin.loadMem(
                         fileName,
                         fileBytes!,
                       );
-                      soundHash = sound.soundHash;
+                      soundHash = audioSource.soundHash;
                     }
                   } else {
-                    var sound = await _flutterSoloudPlugin.loadMem(
+                    audioSource = await _flutterSoloudPlugin.loadMem(
                       '/home/deimos/5/12.-Animal Instinct.flac',
                       File('/home/deimos/5/12.-Animal Instinct.flac')
                           .readAsBytesSync(),
                     );
-                    soundHash = sound.soundHash;
+                    soundHash = audioSource.soundHash;
                   }
                   print('****** FILE LOADED $soundHash');
                 },
@@ -152,23 +163,32 @@ class _MyAppState extends State<MyApp> {
                 },
                 child: const Text('play'),
               ),
+              ////////////////////////////////////////////////
+              ////////////////////////////////////////////////
+              ////////////////////////////////////////////////
               OutlinedButton(
                 onPressed: () {
-                  print('main getIsValidVoiceHandle1: $soundHandle');
-                  // final b = _flutterSoloudPlugin
-                  //     .getIsValidVoiceHandle(soundHandle);
-                  print('main getIsValidVoiceHandle: $soundHandle ');
+                  audioData.updateSamples();
+                  final s = StringBuffer();
+                  for (var i = 0; i < 20; i++) {
+                    s.write(audioData.get2D(0, i).toStringAsFixed(1));
+                  }
+                  print('texture2d: $s');
                 },
-                child: const Text('get is valid'),
+                child: const Text('get texture'),
               ),
+              ////////////////////////////////////////////////
+              ////////////////////////////////////////////////
+              ////////////////////////////////////////////////
+
               OutlinedButton(
                 onPressed: () {
                   _flutterSoloudPlugin.deinit();
                 },
                 child: const Text('dispose'),
               ),
-              const SizedBox(height: 20),
-              const SizedBox(height: 20),
+              const SizedBox(height: 40),
+              const Bars(audioSource: GetSamplesFrom.player),
             ],
           ),
         ),

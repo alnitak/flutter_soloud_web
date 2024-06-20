@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:typed_data';
 import 'dart:js_interop';
 
@@ -100,8 +99,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     String completeFileName,
     LoadMode mode,
   ) {
-    throw UnimplementedError(
-        '[loadFile] in not supported on the web platfom! '
+    throw UnimplementedError('[loadFile] in not supported on the web platfom! '
         'Please use [loadMem].');
   }
 
@@ -300,13 +298,12 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
 
   @override
   void setVisualizationEnabled(bool enabled) {
-    throw UnimplementedError(
-        '[setVisualizationEnabled] in not supported on the web platfom!');
+    _setVisualizationEnabled(enabled ? 1 : 0);
   }
 
   @override
   bool getVisualizationEnabled() {
-    return false;
+    return _getVisualizationEnabled() == 1;
   }
 
   @override
@@ -412,9 +409,9 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     return _setMaxActiveVoiceCount(maxVoiceCount);
   }
 
-  /////////////////////////////////////////
-  /// faders
-  /////////////////////////////////////////
+  // ///////////////////////////////////////
+  //  faders
+  // ///////////////////////////////////////
 
   @override
   int fadeGlobalVolume(double to, Duration duration) {
@@ -468,9 +465,9 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     return _oscillateGlobalVolume(from, to, time.toDouble());
   }
 
-  /////////////////////////////////////////
-  /// Filters
-  /////////////////////////////////////////
+  // ///////////////////////////////////////
+  //  Filters
+  // ///////////////////////////////////////
 
   @override
   ({PlayerErrors error, int index}) isFilterActive(int filterType) {
@@ -526,9 +523,9 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     return _getFxParams(filterType, attributeId);
   }
 
-  /////////////////////////////////////////
-  /// 3D audio methods
-  /////////////////////////////////////////
+  // //////////////////////////////////////
+  // 3D audio methods
+  // //////////////////////////////////////
 
   @override
   ({PlayerErrors error, SoundHandle newHandle}) play3d(
@@ -699,9 +696,9 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
   }
 }
 
-//////////////////////////////////////////////////////////////
-/// JS external methods
-//////////////////////////////////////////////////////////////
+// //////////////////////////////////////
+//  JS external methods
+// //////////////////////////////////////
 
 @JS('Module._malloc')
 external int _malloc(int bytesCount);

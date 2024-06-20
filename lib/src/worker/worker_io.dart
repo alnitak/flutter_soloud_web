@@ -1,5 +1,3 @@
-import 'package:flutter_soloud/audio_isolate.dart';
-
 import 'worker.dart' as base;
 import 'dart:async';
 import 'dart:isolate' as iso;

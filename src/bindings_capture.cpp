@@ -84,7 +84,6 @@ FFI_PLUGIN_EXPORT enum CaptureErrors stopCapture()
     return capture.stopCapture();
 }
 
-
 FFI_PLUGIN_EXPORT void getCaptureTexture(float* samples)
 {
     if (analyzerCapture.get() == nullptr || !capture.isInited()) {

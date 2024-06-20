@@ -2,6 +2,7 @@ import 'dart:ffi' as ffi;
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter_soloud/src/bindings/bindings_capture.dart';
+import 'package:flutter_soloud/src/bindings/ffi_data.dart';
 import 'package:flutter_soloud/src/enums.dart';
 
 /// CaptureDevice struct exposed in C
@@ -147,8 +148,19 @@ class FlutterCaptureFfi extends FlutterCapture {
   late final _stopCapture = _stopCapturePtr.asFunction<int Function()>();
 
   @override
-  CaptureErrors getCaptureAudioTexture2D(dynamic samples) {
-    int ret = _getCaptureAudioTexture2D(samples);
+  void getCaptureAudioTexture(FfiData samples) {
+    return _getCaptureTexture(samples.data1D);
+  }
+
+  late final _getCaptureTexturePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Float>)>>(
+          'getCaptureTexture');
+  late final _getCaptureTexture =
+      _getCaptureTexturePtr.asFunction<void Function(ffi.Pointer<ffi.Float>)>();
+
+  @override
+  CaptureErrors getCaptureAudioTexture2D(FfiData samples) {
+    int ret = _getCaptureAudioTexture2D(samples.data2D);
     return CaptureErrors.values[ret];
   }
 

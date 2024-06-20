@@ -1,7 +1,6 @@
 // ignore_for_file: require_trailing_commas, avoid_positional_boolean_parameters
 
 import 'dart:async';
-// import 'dart:ffi' as ffi;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +12,7 @@ import 'package:flutter_soloud/src/bindings/soloud_controller.dart';
 import 'package:flutter_soloud/src/sound_handle.dart';
 import 'package:flutter_soloud/src/sound_hash.dart';
 import 'package:flutter_soloud/src/utils/loader.dart';
+import 'package:flutter_soloud/src/bindings/ffi_data.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -551,11 +551,11 @@ interface class SoLoud {
       throw const SoLoudNotInitializedException();
     }
     final ret = _controller.soLoudFFI.loadWaveform(
-          waveform,
-          superWave,
-          scale,
-          detune,
-        );
+      waveform,
+      superWave,
+      scale,
+      detune,
+    );
 
     if (ret.error == PlayerErrors.noError) {
       final newSound = AudioSource(ret.soundHash);
@@ -629,9 +629,9 @@ interface class SoLoud {
       throw const SoLoudNotInitializedException();
     }
     _controller.soLoudFFI.setWaveformSuperWave(
-          sound.soundHash,
-          superwave ? 1 : 0,
-        );
+      sound.soundHash,
+      superwave ? 1 : 0,
+    );
   }
 
   /// Create a new audio source from the given [textToSpeech].
@@ -690,13 +690,13 @@ interface class SoLoud {
       throw const SoLoudNotInitializedException();
     }
     final ret = _controller.soLoudFFI.play(
-          sound.soundHash,
-          volume: volume,
-          pan: pan,
-          paused: paused,
-          looping: looping,
-          loopingStartAt: loopingStartAt,
-        );
+      sound.soundHash,
+      volume: volume,
+      pan: pan,
+      paused: paused,
+      looping: looping,
+      loopingStartAt: loopingStartAt,
+    );
     _logPlayerError(ret.error, from: 'play()');
     if (ret.error != PlayerErrors.noError) {
       throw SoLoudCppException.fromPlayerError(ret.error);
@@ -1185,22 +1185,21 @@ interface class SoLoud {
   /// [GitHub](https://github.com/alnitak/flutter_soloud/issues) providing
   /// a simple working example.
   @experimental
-  void getAudioTexture2D(
-      /* ffi.Pointer<ffi.Pointer<ffi.Float>> */ dynamic audioData) {
-    // if (!isInitialized || audioData == ffi.nullptr) {
-    //   throw const SoLoudNotInitializedException();
-    // }
-    // if (!_isVisualizationEnabled) {
-    //   throw const SoLoudVisualizationNotEnabledException();
-    // }
-    // final error = _controller.soLoudFFI.getAudioTexture2D(audioData);
-    // _logPlayerError(error, from: 'getAudioTexture2D() result');
-    // if (error != PlayerErrors.noError) {
-    //   throw SoLoudCppException.fromPlayerError(error);
-    // }
-    // if (audioData.value == ffi.nullptr) {
-    //   throw const SoLoudNullPointerException();
-    // }
+  void getAudioTexture2D(FfiData audioData) {
+    if (!isInitialized || audioData.isEmpty2D) {
+      throw const SoLoudNotInitializedException();
+    }
+    if (!_isVisualizationEnabled) {
+      throw const SoLoudVisualizationNotEnabledException();
+    }
+    final error = _controller.soLoudFFI.getAudioTexture2D(audioData);
+    _logPlayerError(error, from: 'getAudioTexture2D() result');
+    if (error != PlayerErrors.noError) {
+      throw SoLoudCppException.fromPlayerError(error);
+    }
+    if (audioData.isEmpty2D) {
+      throw const SoLoudNullPointerException();
+    }
   }
 
   /// Smooth FFT data.
@@ -1289,8 +1288,7 @@ interface class SoLoud {
     if (!isInitialized) {
       throw const SoLoudNotInitializedException();
     }
-    final ret =
-        _controller.soLoudFFI.fadeRelativePlaySpeed(handle, to, time);
+    final ret = _controller.soLoudFFI.fadeRelativePlaySpeed(handle, to, time);
     final error = PlayerErrors.values[ret];
     if (error != PlayerErrors.noError) {
       _log.severe(() => 'fadeRelativePlaySpeed(): $error');
@@ -1346,8 +1344,7 @@ interface class SoLoud {
     if (!isInitialized) {
       throw const SoLoudNotInitializedException();
     }
-    final ret =
-        _controller.soLoudFFI.oscillateVolume(handle, from, to, time);
+    final ret = _controller.soLoudFFI.oscillateVolume(handle, from, to, time);
     final error = PlayerErrors.values[ret];
     if (error != PlayerErrors.noError) {
       _log.severe(() => 'oscillateVolume(): $error');
@@ -1368,8 +1365,7 @@ interface class SoLoud {
     if (!isInitialized) {
       throw const SoLoudNotInitializedException();
     }
-    final ret =
-        _controller.soLoudFFI.oscillatePan(handle, from, to, time);
+    final ret = _controller.soLoudFFI.oscillatePan(handle, from, to, time);
     final error = PlayerErrors.values[ret];
     if (error != PlayerErrors.noError) {
       _log.severe(() => 'oscillatePan(): $error');
@@ -1391,8 +1387,7 @@ interface class SoLoud {
     if (!isInitialized) {
       throw const SoLoudNotInitializedException();
     }
-    final ret = _controller
-        .soLoudFFI
+    final ret = _controller.soLoudFFI
         .oscillateRelativePlaySpeed(handle, from, to, time);
     final error = PlayerErrors.values[ret];
     if (error != PlayerErrors.noError) {
@@ -1412,8 +1407,7 @@ interface class SoLoud {
     if (!isInitialized) {
       throw const SoLoudNotInitializedException();
     }
-    final ret =
-        _controller.soLoudFFI.oscillateGlobalVolume(from, to, time);
+    final ret = _controller.soLoudFFI.oscillateGlobalVolume(from, to, time);
     final error = PlayerErrors.values[ret];
     if (error != PlayerErrors.noError) {
       _log.severe(() => 'oscillateGlobalVolume(): $error');
@@ -1444,8 +1438,7 @@ interface class SoLoud {
   ///
   /// Returns the list of param names.
   List<String> getFilterParamNames(FilterType filterType) {
-    final ret =
-        _controller.soLoudFFI.getFilterParamNames(filterType.index);
+    final ret = _controller.soLoudFFI.getFilterParamNames(filterType.index);
     if (ret.error != PlayerErrors.noError) {
       _log.severe(() => 'getFilterParamNames(): ${ret.error}');
       throw SoLoudCppException.fromPlayerError(ret.error);
@@ -1469,8 +1462,7 @@ interface class SoLoud {
 
   /// Removes [filterType] from all sounds.
   void removeGlobalFilter(FilterType filterType) {
-    final ret =
-        _controller.soLoudFFI.removeGlobalFilter(filterType.index);
+    final ret = _controller.soLoudFFI.removeGlobalFilter(filterType.index);
     final error = PlayerErrors.values[ret];
     if (error != PlayerErrors.noError) {
       _log.severe(() => 'removeGlobalFilter(): $error');
@@ -1484,8 +1476,7 @@ interface class SoLoud {
   /// [getFilterParamNames]), and its new [value].
   void setFilterParameter(
       FilterType filterType, int attributeId, double value) {
-    final ret = _controller
-        .soLoudFFI
+    final ret = _controller.soLoudFFI
         .setFilterParams(filterType.index, attributeId, value);
     final error = PlayerErrors.values[ret];
     if (error != PlayerErrors.noError) {
@@ -1501,9 +1492,7 @@ interface class SoLoud {
   ///
   /// Returns the value as [double].
   double getFilterParameter(FilterType filterType, int attributeId) {
-    return _controller
-        .soLoudFFI
-        .getFilterParams(filterType.index, attributeId);
+    return _controller.soLoudFFI.getFilterParams(filterType.index, attributeId);
   }
 
   // ////////////////////////////////////////////////
@@ -1560,18 +1549,18 @@ interface class SoLoud {
     }
 
     final ret = _controller.soLoudFFI.play3d(
-          sound.soundHash,
-          posX,
-          posY,
-          posZ,
-          velX: velX,
-          velY: velY,
-          velZ: velZ,
-          volume: volume,
-          paused: paused,
-          looping: looping,
-          loopingStartAt: loopingStartAt,
-        );
+      sound.soundHash,
+      posX,
+      posY,
+      posZ,
+      velX: velX,
+      velY: velY,
+      velZ: velZ,
+      volume: volume,
+      paused: paused,
+      looping: looping,
+      loopingStartAt: loopingStartAt,
+    );
 
     _logPlayerError(ret.error, from: 'play3d()');
     if (ret.error != PlayerErrors.noError) {
@@ -1624,8 +1613,8 @@ interface class SoLoud {
       double velocityX,
       double velocityY,
       double velocityZ) {
-    _controller.soLoudFFI.set3dListenerParameters(posX, posY, posZ, atX,
-        atY, atZ, upX, upY, upZ, velocityX, velocityY, velocityZ);
+    _controller.soLoudFFI.set3dListenerParameters(posX, posY, posZ, atX, atY,
+        atZ, upX, upY, upZ, velocityX, velocityY, velocityZ);
   }
 
   /// Sets the position parameter of the 3D audio listener.
@@ -1646,8 +1635,7 @@ interface class SoLoud {
   /// Sets the 3D listener's velocity vector.
   void set3dListenerVelocity(
       double velocityX, double velocityY, double velocityZ) {
-    _controller
-        .soLoudFFI
+    _controller.soLoudFFI
         .set3dListenerVelocity(velocityX, velocityY, velocityZ);
   }
 
@@ -1670,8 +1658,7 @@ interface class SoLoud {
   /// Set the velocity parameter of a live 3D audio source.
   void set3dSourceVelocity(SoundHandle handle, double velocityX,
       double velocityY, double velocityZ) {
-    _controller
-        .soLoudFFI
+    _controller.soLoudFFI
         .set3dSourceVelocity(handle, velocityX, velocityY, velocityZ);
   }
 
@@ -1679,8 +1666,7 @@ interface class SoLoud {
   /// of a live 3D audio source.
   void set3dSourceMinMaxDistance(
       SoundHandle handle, double minDistance, double maxDistance) {
-    _controller
-        .soLoudFFI
+    _controller.soLoudFFI
         .set3dSourceMinMaxDistance(handle, minDistance, maxDistance);
   }
 
@@ -1701,17 +1687,15 @@ interface class SoLoud {
     double attenuationRolloffFactor,
   ) {
     _controller.soLoudFFI.set3dSourceAttenuation(
-          handle,
-          attenuationModel,
-          attenuationRolloffFactor,
-        );
+      handle,
+      attenuationModel,
+      attenuationRolloffFactor,
+    );
   }
 
   /// Sets the doppler factor of a live 3D audio source.
   void set3dSourceDopplerFactor(SoundHandle handle, double dopplerFactor) {
-    _controller
-        .soLoudFFI
-        .set3dSourceDopplerFactor(handle, dopplerFactor);
+    _controller.soLoudFFI.set3dSourceDopplerFactor(handle, dopplerFactor);
   }
 
   /// Utility method that logs a [Level.SEVERE] message if [playerError]

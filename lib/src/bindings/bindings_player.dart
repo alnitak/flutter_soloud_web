@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/sound_hash.dart';
 import 'package:flutter_soloud/src/sound_handle.dart';
+import 'package:flutter_soloud/src/bindings/ffi_data.dart';
 import 'package:meta/meta.dart';
 
 export 'package:flutter_soloud/src/bindings/bindings_player_ffi.dart'
@@ -322,7 +323,7 @@ abstract class FlutterSoLoud {
   /// [samples] on all platforms web excluded, the [samples] type is
   /// `Pointer<Float>`.
   @mustBeOverridden
-  void getAudioTexture(dynamic samples);
+  void getAudioTexture(FfiData samples);
 
   /// Return a floats matrix of 256x512
   /// Every row are composed of 256 FFT values plus 256 of wave data
@@ -333,7 +334,7 @@ abstract class FlutterSoLoud {
   /// [samples] on all platforms web excluded, the [samples] type is
   /// `Pointer<Pointer<Float>>`.
   @mustBeOverridden
-  PlayerErrors getAudioTexture2D(dynamic samples);
+  PlayerErrors getAudioTexture2D(FfiData samples);
 
   /// Get the sound length.
   ///
@@ -448,9 +449,9 @@ abstract class FlutterSoLoud {
   @mustBeOverridden
   void setMaxActiveVoiceCount(int maxVoiceCount);
 
-  /////////////////////////////////////////
-  /// faders
-  /////////////////////////////////////////
+  // ///////////////////////////////////////
+  //  faders
+  // ///////////////////////////////////////
 
   /// Smoothly change the global volume over specified [duration].
   @mustBeOverridden
@@ -494,9 +495,9 @@ abstract class FlutterSoLoud {
   @mustBeOverridden
   int oscillateGlobalVolume(double from, double to, Duration time);
 
-  /////////////////////////////////////////
-  /// Filters
-  /////////////////////////////////////////
+  // ///////////////////////////////////////
+  // Filters
+  // ///////////////////////////////////////
 
   /// Check if the given filter is active or not.
   ///
@@ -549,9 +550,9 @@ abstract class FlutterSoLoud {
   @mustBeOverridden
   double getFilterParams(int filterType, int attributeId);
 
-  /////////////////////////////////////////
-  /// 3D audio methods
-  /////////////////////////////////////////
+  // ///////////////////////////////////////
+  //  3D audio methods
+  // ///////////////////////////////////////
 
   /// play3d() is the 3d version of the play() call.
   ///

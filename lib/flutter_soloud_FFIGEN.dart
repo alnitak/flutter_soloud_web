@@ -25,27 +25,19 @@ class FlutterSoLoudFfi {
       : _lookup = lookup;
 
   /// --------------------- copy here the new functions to generate
-  void listCaptureDevices(
-    ffi.Pointer<ffi.Pointer<ffi.Char>> devicesName,
-    ffi.Pointer<ffi.Pointer<ffi.Int>> isDefault,
-    ffi.Pointer<ffi.Int> n_devices,
+  void getCaptureTexture(
+    ffi.Pointer<ffi.Float> samples,
   ) {
-    return _listCaptureDevices(
-      devicesName,
-      isDefault,
-      n_devices,
+    return _getCaptureTexture(
+      samples,
     );
   }
 
-  late final _listCaptureDevicesPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Void Function(
-              ffi.Pointer<ffi.Pointer<ffi.Char>>,
-              ffi.Pointer<ffi.Pointer<ffi.Int>>,
-              ffi.Pointer<ffi.Int>)>>('listCaptureDevices');
-  late final _listCaptureDevices = _listCaptureDevicesPtr.asFunction<
-      void Function(ffi.Pointer<ffi.Pointer<ffi.Char>>,
-          ffi.Pointer<ffi.Pointer<ffi.Int>>, ffi.Pointer<ffi.Int>)>();
+  late final _getCaptureTexturePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Float>)>>(
+          'getCaptureTexture');
+  late final _getCaptureTexture =
+      _getCaptureTexturePtr.asFunction<void Function(ffi.Pointer<ffi.Float>)>();
 }
 
 final class CaptureDevice extends ffi.Struct {

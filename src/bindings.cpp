@@ -623,7 +623,7 @@ extern "C"
     /// up (the last one will be lost).
     ///
     /// [samples]
-    float texture2D[512][256];
+    float texture2D[256][512];
     FFI_PLUGIN_EXPORT enum PlayerErrors getAudioTexture2D(float **samples)
     {
         if (player.get() == nullptr || !player.get()->isInited() ||
