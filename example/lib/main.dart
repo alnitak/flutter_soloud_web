@@ -16,8 +16,9 @@ import 'package:flutter_soloud/src/soloud.dart';
 import 'package:flutter_soloud/src/soloud_capture.dart';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/filter_params.dart';
-import 'package:flutter_soloud/src/bindings/ffi_data.dart';
+import 'package:flutter_soloud/src/bindings/audio_data.dart';
 import 'package:flutter_soloud_example/bars.dart';
+import 'package:flutter_soloud/src/bindings/audio_data_extensions.dart';
 
 void main() async {
   await SoLoud.instance.init();
@@ -41,7 +42,10 @@ class _MyAppState extends State<MyApp> {
   late AudioSource audioSource;
   late SoundHash soundHash;
   late SoundHandle soundHandle;
-  FfiData audioData = FfiData(GetSamplesFrom.player, GetSamplesKind.texture);
+  AudioData audioData = AudioData(
+    GetSamplesFrom.player,
+    GetSamplesKind.texture,
+  );
 
   @override
   void dispose() {
@@ -171,7 +175,11 @@ class _MyAppState extends State<MyApp> {
                   audioData.updateSamples();
                   final s = StringBuffer();
                   for (var i = 0; i < 20; i++) {
-                    s.write(audioData.get2D(0, i).toStringAsFixed(1));
+                    s.write(
+                      audioData
+                          .get2D(SampleRow(0), SampleColumn(i))
+                          .toStringAsFixed(1),
+                    );
                   }
                   print('texture2d: $s');
                 },

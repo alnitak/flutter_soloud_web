@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_soloud/src/bindings/ffi_data.dart';
+import 'package:flutter_soloud/src/bindings/audio_data.dart';
+import 'package:flutter_soloud/src/bindings/audio_data_extensions.dart';
 
 /// Draw the audio wave data
 ///
@@ -11,13 +12,13 @@ class BarsWaveWidget extends StatelessWidget {
     super.key,
   });
 
-  final FfiData audioData;
+  final AudioData audioData;
   final double width;
   final double height;
 
   @override
   Widget build(BuildContext context) {
-    if (audioData.isEmpty2D) return const SizedBox.shrink();
+    if (audioData.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,7 +45,7 @@ class WavePainter extends CustomPainter {
   const WavePainter({
     required this.audioData,
   });
-  final FfiData audioData;
+  final AudioData audioData;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -55,7 +56,12 @@ class WavePainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     for (var i = 0; i < 256; i++) {
-      final barHeight = size.height * audioData.get2D(0, i+256);
+      late final double barHeight;
+      try {
+        barHeight = size.height * audioData.get1D(SampleOffset(i+256));
+      } on Exception {
+        barHeight = 0;
+      }
       canvas.drawRect(
         Rect.fromLTWH(
           barWidth * i,

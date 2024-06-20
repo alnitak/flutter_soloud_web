@@ -3,7 +3,7 @@ import 'package:flutter/scheduler.dart';
 import 'bars_fft_widget.dart';
 import 'bars_wave_widget.dart';
 
-import 'package:flutter_soloud/src/bindings/ffi_data.dart';
+import 'package:flutter_soloud/src/bindings/audio_data.dart';
 import 'package:flutter_soloud/src/soloud.dart';
 import 'package:flutter_soloud/src/soloud_capture.dart';
 
@@ -23,14 +23,14 @@ class Bars extends StatefulWidget {
 
 class BarsState extends State<Bars> with SingleTickerProviderStateMixin {
   late final Ticker ticker;
-  late final FfiData audioData;
+  late final AudioData audioData;
 
   @override
   void initState() {
     super.initState();
-    audioData = FfiData(
+    audioData = AudioData(
       widget.audioSource,
-      GetSamplesKind.texture,
+      GetSamplesKind.linear,
     );
     ticker = createTicker(_tick);
     ticker.start();
@@ -44,9 +44,13 @@ class BarsState extends State<Bars> with SingleTickerProviderStateMixin {
   }
 
   void _tick(Duration elapsed) {
-    if (mounted) {
-      audioData.updateSamples();
-      setState(() {});
+    if (context.mounted) {
+      try {
+        audioData.updateSamples();
+        setState(() {});
+      } on Exception {
+        debugPrint('Player not initialized or visualization is not enabled!');
+      }
     }
   }
 

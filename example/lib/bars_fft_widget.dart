@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_soloud/src/bindings/ffi_data.dart';
+import 'package:flutter_soloud/src/bindings/audio_data.dart';
+import 'package:flutter_soloud/src/bindings/audio_data_extensions.dart';
 
 /// Draw the audio FFT data
 ///
@@ -13,7 +14,7 @@ class BarsFftWidget extends StatelessWidget {
     super.key,
   });
 
-  final FfiData audioData;
+  final AudioData audioData;
   final int minFreq;
   final int maxFreq;
   final double width;
@@ -21,7 +22,7 @@ class BarsFftWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (audioData.isEmpty2D) return const SizedBox.shrink();
+    if (audioData.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,7 +55,7 @@ class FftPainter extends CustomPainter {
     required this.minFreq,
     required this.maxFreq,
   });
-  final FfiData audioData;
+  final AudioData audioData;
   final int minFreq;
   final int maxFreq;
 
@@ -67,7 +68,12 @@ class FftPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     for (var i = minFreq; i <= maxFreq; i++) {
-      final barHeight = size.height * audioData.get2D(0, i);
+      late final double barHeight;
+      try {
+        barHeight = size.height * audioData.get1D(SampleOffset(i));
+      } on Exception {
+        barHeight = 0;
+      }
       canvas.drawRect(
         Rect.fromLTWH(
           barWidth * (i - minFreq),

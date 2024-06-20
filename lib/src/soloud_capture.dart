@@ -1,6 +1,6 @@
 // import 'dart:ffi' as ffi;
 
-import 'package:flutter_soloud/src/bindings/ffi_data.dart';
+import 'package:flutter_soloud/src/bindings/audio_data.dart';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/soloud.dart';
 import 'package:flutter_soloud/src/bindings/soloud_controller.dart';
@@ -84,8 +84,8 @@ interface class SoLoudCapture {
   ///
   /// Return [CaptureErrors.captureNoError] if no error.
   ///
-  CaptureErrors getCaptureAudioTexture2D(FfiData audioData) {
-    if (!isCaptureInited || audioData.isEmpty2D) {
+  CaptureErrors getCaptureAudioTexture2D(AudioData audioData) {
+    if (!isCaptureInited || audioData.isEmpty) {
       _log.severe(
         () => 'getCaptureAudioTexture2D(): ${CaptureErrors.captureNotInited}',
       );
@@ -99,7 +99,7 @@ interface class SoLoudCapture {
     if (ret != CaptureErrors.captureNoError) {
       return ret;
     }
-    if (audioData.isEmpty2D) {
+    if (audioData.isEmpty) {
       _logCaptureError(
         CaptureErrors.nullPointer,
         from: 'getCaptureAudioTexture2D() result',

@@ -9,7 +9,7 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter_soloud/src/bindings/bindings_player.dart';
-import 'package:flutter_soloud/src/bindings/ffi_data.dart';
+import 'package:flutter_soloud/src/bindings/audio_data.dart';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/sound_handle.dart';
 import 'package:flutter_soloud/src/sound_hash.dart';
@@ -577,8 +577,8 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
       _setFftSmoothingPtr.asFunction<void Function(double)>();
 
   @override
-  void getAudioTexture(FfiData samples) {
-    return _getAudioTexture(samples.data1D);
+  void getAudioTexture(AudioData samples) {
+    return _getAudioTexture(samples.samples1D);
   }
 
   late final _getAudioTexturePtr =
@@ -589,11 +589,11 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
       _getAudioTexturePtr.asFunction<void Function(ffi.Pointer<ffi.Float>)>();
 
   @override
-  PlayerErrors getAudioTexture2D(FfiData samples) {
-    if (samples.isEmpty2D) {
+  PlayerErrors getAudioTexture2D(AudioData samples) {
+    if (samples.isEmpty) {
       return PlayerErrors.nullPointer;
     }
-    final ret = _getAudioTexture2D(samples.data2D);
+    final ret = _getAudioTexture2D(samples.samples2D);
     return PlayerErrors.values[ret];
   }
 

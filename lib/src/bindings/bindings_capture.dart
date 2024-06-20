@@ -1,4 +1,4 @@
-import 'package:flutter_soloud/src/bindings/ffi_data.dart';
+import 'package:flutter_soloud/src/bindings/audio_data.dart';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:meta/meta.dart';
 
@@ -29,7 +29,7 @@ abstract class FlutterCapture {
   CaptureErrors stopCapture();
 
   @mustBeOverridden
-  CaptureErrors getCaptureAudioTexture2D(FfiData samples);
+  CaptureErrors getCaptureAudioTexture2D(AudioData samples);
 
   @mustBeOverridden
   CaptureErrors setCaptureFftSmoothing(double smooth);

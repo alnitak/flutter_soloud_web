@@ -12,7 +12,7 @@ import 'package:flutter_soloud/src/bindings/soloud_controller.dart';
 import 'package:flutter_soloud/src/sound_handle.dart';
 import 'package:flutter_soloud/src/sound_hash.dart';
 import 'package:flutter_soloud/src/utils/loader.dart';
-import 'package:flutter_soloud/src/bindings/ffi_data.dart';
+import 'package:flutter_soloud/src/bindings/audio_data.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -245,9 +245,9 @@ interface class SoLoud {
       // Initialize [SoLoudLoader]
       _loader.automaticCleanup = automaticCleanup;
 
-      // TODO(all): can we initialize [SoLoudLoader] somewhere else?
-      /// If yes, we can make `init()` sync.
-      // await _loader.initialize();
+      // TODO(filip): The Loader is not compatible with web! 
+      //              Commenting this temporarly!
+      /// await _loader.initialize();
     } else {
       _log.severe('initialize() failed with error: $error');
     }
@@ -1185,8 +1185,8 @@ interface class SoLoud {
   /// [GitHub](https://github.com/alnitak/flutter_soloud/issues) providing
   /// a simple working example.
   @experimental
-  void getAudioTexture2D(FfiData audioData) {
-    if (!isInitialized || audioData.isEmpty2D) {
+  void getAudioTexture2D(AudioData audioData) {
+    if (!isInitialized || audioData.isEmpty) {
       throw const SoLoudNotInitializedException();
     }
     if (!_isVisualizationEnabled) {
@@ -1197,7 +1197,7 @@ interface class SoLoud {
     if (error != PlayerErrors.noError) {
       throw SoLoudCppException.fromPlayerError(error);
     }
-    if (audioData.isEmpty2D) {
+    if (audioData.isEmpty) {
       throw const SoLoudNullPointerException();
     }
   }
