@@ -1,17 +1,19 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
+
 import 'package:flutter_soloud/src/bindings/audio_data.dart';
 import 'package:flutter_soloud/src/bindings/audio_data_extensions.dart';
 
 /// Draw the audio FFT data
 ///
 class BarsFftWidget extends StatelessWidget {
-  const BarsFftWidget({
+  BarsFftWidget({
+    super.key,
     required this.audioData,
     required this.minFreq,
     required this.maxFreq,
     required this.width,
     required this.height,
-    super.key,
   });
 
   final AudioData audioData;

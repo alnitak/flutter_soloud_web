@@ -10,6 +10,7 @@ typedef SampleFormat2D = Pointer<Pointer<Float>>;
 typedef SampleFormat1D = Pointer<Float>;
 
 @experimental
+@immutable
 class AudioDataCtrl {
   SampleFormat2D allocSample2D() {
     return calloc();
@@ -19,16 +20,16 @@ class AudioDataCtrl {
     return calloc(512 * 4);
   }
 
-  PlayerErrors Function(AudioData) texture2DCallback =
+  final PlayerErrors Function(AudioData) texture2DCallback =
       SoLoudController().soLoudFFI.getAudioTexture2D;
 
-  void Function(AudioData) textureCallback =
+  final void Function(AudioData) textureCallback =
       SoLoudController().soLoudFFI.getAudioTexture;
 
-  CaptureErrors Function(AudioData) captureTexture2DCallback =
+  final CaptureErrors Function(AudioData) captureTexture2DCallback =
       SoLoudController().captureFFI.getCaptureAudioTexture2D;
 
-  void Function(AudioData) captureAudioTextureCallback =
+  final void Function(AudioData) captureAudioTextureCallback =
       SoLoudController().captureFFI.getCaptureAudioTexture;
 
   void dispose(SampleFormat1D s1D, SampleFormat2D s2D) {

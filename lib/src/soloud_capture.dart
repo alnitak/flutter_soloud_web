@@ -84,6 +84,7 @@ interface class SoLoudCapture {
   ///
   /// Return [CaptureErrors.captureNoError] if no error.
   ///
+  @Deprecated('Please use AudioData class instead.')
   CaptureErrors getCaptureAudioTexture2D(AudioData audioData) {
     if (!isCaptureInited || audioData.isEmpty) {
       _log.severe(

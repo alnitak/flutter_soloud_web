@@ -241,7 +241,9 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     bool looping = false,
     Duration loopingStartAt = Duration.zero,
   }) {
+    print('****** PLAY1');
     final handlePtr = malloc(4); // 4 bytes for an int
+    print('****** PLAY2');
     final result = _play(
       soundHash.hash,
       volume,
@@ -253,10 +255,14 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     );
 
     /// "*" means unsigned int 32
+    print('****** PLAY3');
     final newHandle = getValue(handlePtr, '*');
+    print('****** PLAY4');
     final ret =
         (error: PlayerErrors.values[result], newHandle: SoundHandle(newHandle));
+    print('****** PLAY5');
     free(handlePtr);
+    print('****** PLAY6');
 
     return ret;
   }

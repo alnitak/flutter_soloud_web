@@ -39,19 +39,10 @@ class _MyAppState extends State<MyApp> {
   // final _flutterSoloudPlugin = FlutterSoloudWeb();
   final _flutterSoloudPlugin = SoLoud.instance;
   final _flutterSoloudCapturePlugin = SoLoudCapture.instance;
-  late AudioSource audioSource;
+  AudioSource? audioSource;
   late SoundHash soundHash;
   late SoundHandle soundHandle;
-  AudioData audioData = AudioData(
-    GetSamplesFrom.player,
-    GetSamplesKind.texture,
-  );
-
-  @override
-  void dispose() {
-    audioData.dispose();
-    super.dispose();
-  }
+  final smooth = ValueNotifier<double>(1);
 
   @override
   Widget build(BuildContext context) {
@@ -89,13 +80,15 @@ class _MyAppState extends State<MyApp> {
               ////////////////////////////////////////
               ////////////////////////////////////////
               ////////////////////////////////////////
-              // OutlinedButton(
-              //   onPressed: () async {
-              //     await _flutterSoloudPlugin.init();
-              //     _flutterSoloudPlugin.setVisualizationEnabled(true);
-              //   },
-              //   child: const Text('init'),
-              // ),
+              OutlinedButton(
+                onPressed: () async {
+                  try {
+                    await _flutterSoloudPlugin.init();
+                    _flutterSoloudPlugin.setVisualizationEnabled(true);
+                  } on Exception catch (_) {}
+                },
+                child: const Text('init'),
+              ),
               OutlinedButton(
                 onPressed: () async {
                   // _flutterSoloudPlugin.sendMessage('voiceEndedCallback',7777);
@@ -111,14 +104,16 @@ class _MyAppState extends State<MyApp> {
               ),
               OutlinedButton(
                 onPressed: () async {
-                  audioSource = await _flutterSoloudPlugin.loadWaveform(
-                    WaveForm.bounce,
-                    true,
-                    1,
-                    1,
-                  );
-                  soundHash = audioSource.soundHash;
-                  print('main loadWaveform audioSource: $soundHash');
+                  try {
+                    audioSource = await _flutterSoloudPlugin.loadWaveform(
+                      WaveForm.bounce,
+                      true,
+                      1,
+                      1,
+                    );
+                    soundHash = audioSource!.soundHash;
+                    print('main loadWaveform audioSource: $soundHash');
+                  } on Exception catch (_) {}
                 },
                 child: const Text('load waveform'),
               ),
@@ -130,21 +125,24 @@ class _MyAppState extends State<MyApp> {
                     if (result != null && result.files.isNotEmpty) {
                       final fileName = result.files.first.name;
                       final fileBytes = result.files.first.bytes;
-                      audioSource = await _flutterSoloudPlugin.loadMem(
-                        fileName,
-                        fileBytes!,
-                      );
-                      soundHash = audioSource.soundHash;
+                      try {
+                        audioSource = await _flutterSoloudPlugin.loadMem(
+                          fileName,
+                          fileBytes!,
+                        );
+                        soundHash = audioSource!.soundHash;
+                      } on Exception catch (_) {}
                     }
                   } else {
-                    audioSource = await _flutterSoloudPlugin.loadMem(
-                      '/home/deimos/5/12.-Animal Instinct.flac',
-                      File('/home/deimos/5/12.-Animal Instinct.flac')
-                          .readAsBytesSync(),
-                    );
-                    soundHash = audioSource.soundHash;
+                    try {
+                      audioSource = await _flutterSoloudPlugin.loadMem(
+                        '/home/deimos/5/12.-Animal Instinct.flac',
+                        File('/home/deimos/5/12.-Animal Instinct.flac')
+                            .readAsBytesSync(),
+                      );
+                      soundHash = audioSource!.soundHash;
+                    } on Exception catch (_) {}
                   }
-                  print('****** FILE LOADED $soundHash');
                 },
                 child: const Text('load mem'),
               ),
@@ -153,38 +151,44 @@ class _MyAppState extends State<MyApp> {
                   final byteData =
                       await rootBundle.load('assets/explosion.mp3');
                   final buffer = byteData.buffer;
-                  audioSource = await _flutterSoloudPlugin.loadMem(
-                    'assets/explosion.mp3',
-                    buffer.asUint8List(),
-                  );
-                  soundHash = audioSource.soundHash;
+                  try {
+                    audioSource = await _flutterSoloudPlugin.loadMem(
+                      'assets/explosion.mp3',
+                      buffer.asUint8List(),
+                    );
+                    soundHash = audioSource!.soundHash;
+                  } on Exception catch (_) {}
                 },
                 child: const Text('loadMem explosion'),
               ),
               OutlinedButton(
                 onPressed: () async {
-                  soundHandle = await _flutterSoloudPlugin.play(audioSource);
+                  try {
+                    if (audioSource != null) {
+                      soundHandle = await _flutterSoloudPlugin.play(audioSource!);
+                    }
+                  } on Exception catch (_) {}
                 },
                 child: const Text('play'),
               ),
               ////////////////////////////////////////////////
               ////////////////////////////////////////////////
               ////////////////////////////////////////////////
-              OutlinedButton(
-                onPressed: () {
-                  audioData.updateSamples();
-                  final s = StringBuffer();
-                  for (var i = 0; i < 20; i++) {
-                    s.write(
-                      audioData
-                          .get2D(SampleRow(0), SampleColumn(i))
-                          .toStringAsFixed(1),
-                    );
-                  }
-                  print('texture2d: $s');
-                },
-                child: const Text('get texture'),
-              ),
+              // OutlinedButton(
+              //   onPressed: () {
+              //     audioData.updateSamples();
+              //     final s = StringBuffer();
+              //     for (var i = 0; i < 20; i++) {
+              //       s.write(
+              //         audioData
+              //             .get2D(SampleRow(0), SampleColumn(i))
+              //             .toStringAsFixed(1),
+              //       );
+              //     }
+              //     print('texture2d: $s');
+              //   },
+              //   child: const Text('get texture'),
+              // ),
               ////////////////////////////////////////////////
               ////////////////////////////////////////////////
               ////////////////////////////////////////////////
@@ -196,7 +200,19 @@ class _MyAppState extends State<MyApp> {
                 child: const Text('dispose'),
               ),
               const SizedBox(height: 40),
-              const Bars(audioSource: GetSamplesFrom.player),
+              ValueListenableBuilder<double>(
+                  valueListenable: smooth,
+                  builder: (_, value, __) {
+                    return Slider(
+                        value: value,
+                        onChanged: (v) {
+                          smooth.value = v;
+                          try {
+                            SoLoud.instance.setFftSmoothing(smooth.value);
+                          } on Exception catch (_) {}
+                        });
+                  }),
+              const Bars(),
             ],
           ),
         ),

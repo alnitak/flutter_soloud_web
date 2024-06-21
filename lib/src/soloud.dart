@@ -245,7 +245,7 @@ interface class SoLoud {
       // Initialize [SoLoudLoader]
       _loader.automaticCleanup = automaticCleanup;
 
-      // TODO(filip): The Loader is not compatible with web! 
+      // TODO(filip): The Loader is not compatible with web!
       //              Commenting this temporarly!
       /// await _loader.initialize();
     } else {
@@ -429,6 +429,8 @@ interface class SoLoud {
   ///
   /// It is useful when using this plugin on the web browsers because
   /// they cannot read directly files in the loal storage.
+  /// 
+  /// Throws [SoLoudNotInitializedException] if the engine is not initialized.
   Future<AudioSource> loadMem(
     String path,
     Uint8List buffer,
@@ -934,7 +936,8 @@ interface class SoLoud {
     if (!isInitialized) {
       throw const SoLoudNotInitializedException();
     }
-    return _controller.soLoudFFI.getVisualizationEnabled();
+    _isVisualizationEnabled = _controller.soLoudFFI.getVisualizationEnabled();
+    return _isVisualizationEnabled;
   }
 
   /// Get the length of a loaded audio [source].
@@ -1185,6 +1188,7 @@ interface class SoLoud {
   /// [GitHub](https://github.com/alnitak/flutter_soloud/issues) providing
   /// a simple working example.
   @experimental
+  @Deprecated('Please use AudioData class instead.')
   void getAudioTexture2D(AudioData audioData) {
     if (!isInitialized || audioData.isEmpty) {
       throw const SoLoudNotInitializedException();

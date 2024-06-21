@@ -91,8 +91,6 @@ extern "C"
     /// and comes from the audio thread (so on the web, from a different web worker).
     FFI_PLUGIN_EXPORT void voiceEndedCallback(unsigned int *handle)
     {
-        printf("********* CPP BINDINGS handle: %u", *handle);
-
 #ifdef __EMSCRIPTEN__
         // Calling JavaScript from C/C++
         // https://emscripten.org/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#interacting-with-code-call-javascript-from-native
@@ -452,9 +450,14 @@ extern "C"
         double loopingStartAt,
         unsigned int *handle)
     {
+        printf("CPP PLAY1\n");
         if (player.get() == nullptr || !player.get()->isInited())
             return backendNotInited;
-        *handle = player.get()->play(soundHash, volume, pan, paused, looping, loopingStartAt);
+        printf("CPP PLAY2\n");
+        unsigned int newHandle = player.get()->play(soundHash, volume, pan, paused, looping, loopingStartAt);
+        printf("CPP PLAY3  %u\n", newHandle);
+        *handle = newHandle;
+        printf("CPP PLAY4\n");
         return *handle == 0 ? soundHashNotFound : noError;
     }
 

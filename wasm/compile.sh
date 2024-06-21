@@ -42,7 +42,9 @@ em++ \
 -I ~/.emscripten_cache/sysroot/include \
 -s "EXPORTED_RUNTIME_METHODS=['ccall','cwrap']" \
 -s "EXPORTED_FUNCTIONS=['_free', '_malloc']" \
--sASSERTIONS -s EXPORT_ALL=1 -s NO_EXIT_RUNTIME=1 \
+-s EXPORT_ALL=1 -s NO_EXIT_RUNTIME=1 \
+-s ASSERTIONS=1 -s SAFE_HEAP=1 \
+-s TOTAL_MEMORY=512MB \
 --shell-file ../html_template.html \
 -s DEFAULT_TO_CXX \
 -s STACK_SIZE=1048576 -s ALLOW_MEMORY_GROWTH \

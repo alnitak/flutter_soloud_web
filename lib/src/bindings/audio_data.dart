@@ -1,10 +1,12 @@
+import 'package:flutter_soloud/src/bindings/soloud_controller.dart';
 import 'package:flutter_soloud/src/exceptions/exceptions.dart';
 import 'package:flutter_soloud/src/soloud.dart';
 import 'package:flutter_soloud/src/bindings/audio_data_extensions.dart';
+import 'package:flutter_soloud/src/soloud_capture.dart';
 import 'package:meta/meta.dart';
 
 import 'package:flutter_soloud/src/bindings/audio_data_ffi.dart'
-  if (dart.library.html) 'audio_data_web.dart';
+    if (dart.library.html) 'audio_data_web.dart';
 
 /// Enum to tell [AudioData] from where to get audio data.
 enum GetSamplesFrom {
@@ -88,16 +90,18 @@ enum GetSamplesKind {
 ///   waveData = 0;
 /// }
 /// ```
+/// 
+/// To smooth FFT value use [SoLoud.instance.setFftSmoothing] or
+/// [SoLoudCapture.instance.setCaptureFftSmoothing].
 ///
 ///
-///
-// TODO(me): deprecated SoLoud.instance.getAudioTexture*
-//            add here `setFftSmoothing`
+// TODO(me):
 //        add `getWave` and `getFFT`
 //     JS imports in a standalone .dart
+//     add capture exceptions
 @experimental
 class AudioData {
-  final _ctrl = AudioDataCtrl();
+  final AudioDataCtrl _ctrl;
 
   /// Where the audio 2D data is stored.
   late final SampleFormat2D _samples2D;
@@ -114,10 +118,12 @@ class AudioData {
   SampleFormat1D get samples1D => _samples1D;
 
   /// Where to get audio samples. See [GetSamplesFrom].
-  final GetSamplesFrom getSamplesFrom;
+  final GetSamplesFrom _getSamplesFrom;
+  GetSamplesFrom get getSamplesFrom => _getSamplesFrom;
 
   /// Kind of audio samples. See [GetSamplesKind].
-  final GetSamplesKind getSamplesKind;
+  final GetSamplesKind _getSamplesKind;
+  GetSamplesKind get getSamplesKind => _getSamplesKind;
 
   /// The callback used to get new audio samples.
   /// This callback is used in [updateSamples] to avoid to
@@ -126,11 +132,11 @@ class AudioData {
 
   /// Initialize the way the audio data should be acquired.
   AudioData(
-    this.getSamplesFrom,
-    this.getSamplesKind,
-  ) {
-    if (getSamplesFrom == GetSamplesFrom.player) {
-      if (getSamplesKind == GetSamplesKind.texture) {
+    this._getSamplesFrom,
+    this._getSamplesKind,
+  ) : _ctrl = AudioDataCtrl() {
+    if (_getSamplesFrom == GetSamplesFrom.player) {
+      if (_getSamplesKind == GetSamplesKind.texture) {
         _updateCallback = _ctrl.texture2DCallback;
         _samples2D = _ctrl.allocSample2D();
       } else {
@@ -138,7 +144,7 @@ class AudioData {
         _samples1D = _ctrl.allocSample1D();
       }
     } else {
-      if (getSamplesKind == GetSamplesKind.texture) {
+      if (_getSamplesKind == GetSamplesKind.texture) {
         _updateCallback = _ctrl.captureTexture2DCallback;
         _samples2D = _ctrl.allocSample2D();
       } else {
@@ -149,8 +155,20 @@ class AudioData {
   }
 
   /// Update the content of samples memory to be get with [get1D] or [get2D].
+  ///
+  /// Throws [SoLoudNotInitializedException] if the engine is not initialized.
+  /// Throws [SoLoudVisualizationNotEnabledException] if the visualization
+  /// flag is not enableb. Please, Use `setVisualizationEnabled(true)`
+  /// when needed.
+  /// Throws [SoLoudNullPointerException] something is going wrong with the
+  /// player engine. Please, open an issue on
+  /// [GitHub](https://github.com/alnitak/flutter_soloud/issues) providing
+  /// a simple working example.
   void updateSamples() {
-    if (!SoLoud.instance.getVisualizationEnabled()) {
+    if (!SoLoud.instance.isInitialized) {
+      throw const SoLoudNotInitializedException();
+    }
+    if (!SoLoudController().soLoudFFI.getVisualizationEnabled()) {
       throw const SoLoudVisualizationNotEnabledException();
     }
     _updateCallback(this);
@@ -166,9 +184,9 @@ class AudioData {
   /// Use this method to get data when using [GetSamplesKind.linear].
   /// The first 256 float represents FFT data, the other 256 are wave data.
   double get1D(SampleOffset offset) {
-    if (getSamplesKind != GetSamplesKind.linear) return 0;
+    if (_getSamplesKind != GetSamplesKind.linear) return 0;
 
-    if (!SoLoud.instance.getVisualizationEnabled()) {
+    if (!SoLoudController().soLoudFFI.getVisualizationEnabled()) {
       throw const SoLoudVisualizationNotEnabledException();
     }
     return _ctrl.get1D(_samples1D, offset.value);
@@ -181,20 +199,16 @@ class AudioData {
   /// Each time the [AudioData.updateSamples] method is called,
   /// the last row is discarded and the new one will be the first.
   double get2D(SampleRow row, SampleColumn column) {
-    if (getSamplesKind != GetSamplesKind.texture) return 0;
+    if (_getSamplesKind != GetSamplesKind.texture) return 0;
 
-    if (!SoLoud.instance.getVisualizationEnabled()) {
+    if (!SoLoudController().soLoudFFI.getVisualizationEnabled()) {
       throw const SoLoudVisualizationNotEnabledException();
     }
     return _ctrl.get2D(_samples2D, row.value, column.value);
   }
 
   // Wether or not the current used data is empty.
-  bool get isEmpty => getSamplesKind == GetSamplesKind.texture
+  bool get isEmpty => _getSamplesKind == GetSamplesKind.texture
       ? _ctrl.isEmpty2D(_samples2D)
       : _ctrl.isEmpty1D(_samples1D);
-
-  // bool get isEmpty1D => _ctrl.isEmpty1D(_samples1D);
-
-  // bool get isEmpty2D => _ctrl.isEmpty2D(_samples2D);
 }

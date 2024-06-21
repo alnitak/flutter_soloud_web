@@ -26,8 +26,8 @@ external void _setValue(int ptrAddress, int value, String type);
 // @JS('Module._getWave')
 // external void _getWave(XXXX wave);
 
-// @JS('Module._setFftSmoothing')
-// external void _setFftSmoothing(double smooth);
+@JS('Module._setFftSmoothing')
+external void _setFftSmoothing(double smooth);
 
 @JS('Module._getAudioTexture')
 external void _getAudioTexture(int samplesPtr);
@@ -40,6 +40,9 @@ external void _getCaptureAudioTexture(int samplesPtr);
 
 @JS('Module._getCaptureAudioTexture2D')
 external int _getCaptureAudioTexture2D(int samplesPtr);
+
+@JS('Module._setCaptureFftSmoothing')
+external void _setCaptureFftSmoothing(double smooth);
 
 typedef SampleFormat2D = Float32List;
 typedef SampleFormat1D = Float32List;

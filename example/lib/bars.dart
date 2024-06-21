@@ -10,11 +10,9 @@ import 'package:flutter_soloud/src/soloud_capture.dart';
 /// Visualizer for FFT and wave data
 class Bars extends StatefulWidget {
   /// If true get audio data from the player else from the mic
-  final GetSamplesFrom audioSource;
 
   const Bars({
-    super.key,
-    this.audioSource = GetSamplesFrom.player,
+    super.key
   });
 
   @override
@@ -23,15 +21,13 @@ class Bars extends StatefulWidget {
 
 class BarsState extends State<Bars> with SingleTickerProviderStateMixin {
   late final Ticker ticker;
-  late final AudioData audioData;
-
+final AudioData audioData = AudioData(
+      GetSamplesFrom.player,
+      GetSamplesKind.linear,
+    );
   @override
   void initState() {
     super.initState();
-    audioData = AudioData(
-      widget.audioSource,
-      GetSamplesKind.linear,
-    );
     ticker = createTicker(_tick);
     ticker.start();
   }
@@ -39,7 +35,6 @@ class BarsState extends State<Bars> with SingleTickerProviderStateMixin {
   @override
   void dispose() {
     ticker.stop();
-    audioData.dispose();
     super.dispose();
   }
 
