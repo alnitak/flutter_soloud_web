@@ -1,8 +1,8 @@
 import 'dart:typed_data';
-import 'dart:js_interop';
 
+import 'package:flutter_soloud/src/bindings/audio_data.dart';
 import 'package:flutter_soloud/src/bindings/bindings_player.dart';
-import 'package:web/web.dart' as web;
+import 'package:flutter_soloud/src/bindings/js_extension.dart';
 
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/sound_hash.dart';
@@ -37,34 +37,10 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
 
   factory FlutterSoLoudWeb() => _instance ??= FlutterSoLoudWeb._();
 
-  int malloc(int bytesCount) => _malloc(bytesCount);
-
-  int getValue(int ptrAddress, String type) => _getValue(ptrAddress, type);
-
-  void setValue(int ptrAddress, int value, String type) =>
-      _setValue(ptrAddress, value, type);
-
-  void free(int ptrAddress) => _free(ptrAddress);
-
-  JSFunction cwrap(
-    JSString fName,
-    JSString returnType,
-    JSArray<JSString> argTypes,
-  ) =>
-      _cwrap(fName, returnType, argTypes);
-
-  JSFunction ccall(
-    JSString fName,
-    JSString returnType,
-    JSArray<JSString> argTypes,
-    JSArray<JSAny> args,
-  ) =>
-      _ccall(fName, returnType, argTypes, args);
-
   /// Create the worker in the WASM Module.
   @override
   void setDartEventCallbacks() {
-    _createWorkerInWasm();
+    wasmModule.createWorkerInWasm();
   }
 
   /// This is the function called by "web/worker.dart" compiled
@@ -75,24 +51,24 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
   }
 
   void sendMessageToWasmWorker(String message, int value) {
-    final messagePtr = malloc(message.length);
+    final messagePtr = wasmModule.malloc(message.length);
     for (var i = 0; i < message.length; i++) {
-      setValue(messagePtr + i, message.codeUnits[i], 'i8');
+      wasmModule.setValue(messagePtr + i, message.codeUnits[i], 'i8');
     }
-    _sendToWorker(messagePtr, value);
-    free(messagePtr);
+    wasmModule.sendToWorker(messagePtr, value);
+    wasmModule.free(messagePtr);
   }
 
   @override
   PlayerErrors initEngine() {
-    return PlayerErrors.values[_initEngine()];
+    return PlayerErrors.values[wasmModule.initEngine()];
   }
 
   @override
-  void deinit() => _deinit();
+  void deinit() => wasmModule.deinit();
 
   @override
-  bool isInited() => _isInited() == 1;
+  bool isInited() => wasmModule.isInited() == 1;
 
   @override
   ({PlayerErrors error, SoundHash soundHash}) loadFile(
@@ -108,16 +84,16 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     String uniqueName,
     Uint8List buffer,
   ) {
-    final hashPtr = malloc(4); // 4 bytes for an int
-    final bytesPtr = malloc(buffer.length);
-    final pathPtr = malloc(uniqueName.length);
+    final hashPtr = wasmModule.malloc(4); // 4 bytes for an int
+    final bytesPtr = wasmModule.malloc(buffer.length);
+    final pathPtr = wasmModule.malloc(uniqueName.length);
     for (var i = 0; i < buffer.length; i++) {
-      setValue(bytesPtr + i, buffer[i], 'i8');
+      wasmModule.setValue(bytesPtr + i, buffer[i], 'i8');
     }
     for (var i = 0; i < uniqueName.length; i++) {
-      setValue(pathPtr + i, uniqueName.codeUnits[i], 'i8');
+      wasmModule.setValue(pathPtr + i, uniqueName.codeUnits[i], 'i8');
     }
-    final result = _loadMem(
+    final result = wasmModule.loadMem(
       pathPtr,
       bytesPtr,
       buffer.length,
@@ -125,13 +101,13 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     );
 
     /// "*" means unsigned int 32
-    final hash = getValue(hashPtr, '*');
+    final hash = wasmModule.getI32Value(hashPtr, '*');
     final soundHash = SoundHash(hash);
     final ret = (error: PlayerErrors.values[result], soundHash: soundHash);
 
-    free(hashPtr);
-    free(bytesPtr);
-    free(pathPtr);
+    wasmModule.free(hashPtr);
+    wasmModule.free(bytesPtr);
+    wasmModule.free(pathPtr);
 
     return ret;
   }
@@ -143,8 +119,8 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     double scale,
     double detune,
   ) {
-    final hashPtr = malloc(4); // 4 bytes for an int
-    final result = _loadWaveform(
+    final hashPtr = wasmModule.malloc(4); // 4 bytes for an int
+    final result = wasmModule.loadWaveform(
       waveform.index,
       superWave,
       scale,
@@ -153,83 +129,83 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     );
 
     /// "*" means unsigned int 32
-    var hash = getValue(hashPtr, '*');
+    var hash = wasmModule.getI32Value(hashPtr, '*');
     final soundHash = SoundHash(hash);
     final ret = (error: PlayerErrors.values[result], soundHash: soundHash);
-    free(hashPtr);
+    wasmModule.free(hashPtr);
 
     return ret;
   }
 
   @override
   void setWaveformScale(SoundHash hash, double newScale) {
-    return _setWaveformScale(hash.hash, newScale);
+    return wasmModule.setWaveformScale(hash.hash, newScale);
   }
 
   @override
   void setWaveformDetune(SoundHash hash, double newDetune) {
-    return _setWaveformDetune(hash.hash, newDetune);
+    return wasmModule.setWaveformDetune(hash.hash, newDetune);
   }
 
   @override
   void setWaveformFreq(SoundHash hash, double newFreq) {
-    return _setWaveformFreq(hash.hash, newFreq);
+    return wasmModule.setWaveformFreq(hash.hash, newFreq);
   }
 
   @override
   void setWaveformSuperWave(SoundHash hash, int superwave) {
-    return _setSuperWave(hash.hash, superwave);
+    return wasmModule.setSuperWave(hash.hash, superwave);
   }
 
   @override
   void setWaveform(SoundHash hash, WaveForm newWaveform) {
-    return _setWaveform(hash.hash, newWaveform.index);
+    return wasmModule.setWaveform(hash.hash, newWaveform.index);
   }
 
   @override
   ({PlayerErrors error, SoundHandle handle}) speechText(String textToSpeech) {
-    final handlePtr = malloc(4); // 4 bytes for an int
-    final textToSpeechPtr = malloc(textToSpeech.length);
-    final result = _speechText(
+    final handlePtr = wasmModule.malloc(4); // 4 bytes for an int
+    final textToSpeechPtr = wasmModule.malloc(textToSpeech.length);
+    final result = wasmModule.speechText(
       textToSpeechPtr,
       handlePtr,
     );
 
     /// "*" means unsigned int 32
-    final newHandle = getValue(handlePtr, '*');
+    final newHandle = wasmModule.getI32Value(handlePtr, '*');
     final ret = (
       error: PlayerErrors.values[result],
       handle: SoundHandle(newHandle),
     );
-    free(textToSpeechPtr);
-    free(handlePtr);
+    wasmModule.free(textToSpeechPtr);
+    wasmModule.free(handlePtr);
 
     return ret;
   }
 
   @override
   void pauseSwitch(SoundHandle handle) {
-    return _pauseSwitch(handle.id);
+    return wasmModule.pauseSwitch(handle.id);
   }
 
   @override
   void setPause(SoundHandle handle, int pause) {
-    return _setPause(handle.id, pause);
+    return wasmModule.setPause(handle.id, pause);
   }
 
   @override
   bool getPause(SoundHandle handle) {
-    return _getPause(handle.id) == 1;
+    return wasmModule.getPause(handle.id) == 1;
   }
 
   @override
   void setRelativePlaySpeed(SoundHandle handle, double speed) {
-    return _setRelativePlaySpeed(handle.id, speed);
+    return wasmModule.setRelativePlaySpeed(handle.id, speed);
   }
 
   @override
   double getRelativePlaySpeed(SoundHandle handle) {
-    return _getRelativePlaySpeed(handle.id);
+    return wasmModule.getRelativePlaySpeed(handle.id);
   }
 
   @override
@@ -241,8 +217,8 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     bool looping = false,
     Duration loopingStartAt = Duration.zero,
   }) {
-    final handlePtr = malloc(4); // 4 bytes for an int
-    final result = _play(
+    final handlePtr = wasmModule.malloc(4); // 4 bytes for an int
+    final result = wasmModule.play(
       soundHash.hash,
       volume,
       pan,
@@ -253,57 +229,57 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     );
 
     /// "*" means unsigned int 32
-    final newHandle = getValue(handlePtr, '*');
+    final newHandle = wasmModule.getI32Value(handlePtr, '*');
     final ret =
         (error: PlayerErrors.values[result], newHandle: SoundHandle(newHandle));
-    free(handlePtr);
+    wasmModule.free(handlePtr);
 
     return ret;
   }
 
   @override
   void stop(SoundHandle handle) {
-    return _stop(handle.id);
+    return wasmModule.stop(handle.id);
   }
 
   @override
   void disposeSound(SoundHash soundHash) {
-    return _disposeSound(soundHash.hash);
+    return wasmModule.disposeSound(soundHash.hash);
   }
 
   @override
   void disposeAllSound() {
-    return _disposeAllSound();
+    return wasmModule.disposeAllSound();
   }
 
   @override
   bool getLooping(SoundHandle handle) {
-    return _getLooping(handle.id) == 1;
+    return wasmModule.getLooping(handle.id) == 1;
   }
 
   @override
   void setLooping(SoundHandle handle, bool enable) {
-    return _setLooping(handle.id, enable ? 1 : 0);
+    return wasmModule.setLooping(handle.id, enable ? 1 : 0);
   }
 
   @override
   Duration getLoopPoint(SoundHandle handle) {
-    return _getLoopPoint(handle.id).toDuration();
+    return wasmModule.getLoopPoint(handle.id).toDuration();
   }
 
   @override
   void setLoopPoint(SoundHandle handle, Duration timestamp) {
-    _setLoopPoint(handle.id, timestamp.toDouble());
+    wasmModule.setLoopPoint(handle.id, timestamp.toDouble());
   }
 
   @override
   void setVisualizationEnabled(bool enabled) {
-    _setVisualizationEnabled(enabled ? 1 : 0);
+    wasmModule.setVisualizationEnabled(enabled ? 1 : 0);
   }
 
   @override
   bool getVisualizationEnabled() {
-    return _getVisualizationEnabled() == 1;
+    return wasmModule.getVisualizationEnabled() == 1;
   }
 
   @override
@@ -318,95 +294,93 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
 
   @override
   void setFftSmoothing(double smooth) {
-    throw UnimplementedError(
-        '[setFftSmoothing] in not supported on the web platfom!');
+    wasmModule.setFftSmoothing(smooth);
   }
 
   @override
-  void getAudioTexture(dynamic samples) {
-    throw UnimplementedError(
-        '[getAudioTexture] in not supported on the web platfom!');
+  void getAudioTexture(AudioData samples) {
+    wasmModule.getAudioTexture(samples.ctrl.samplesPtr);
   }
 
   @override
-  PlayerErrors getAudioTexture2D(dynamic samples) {
-    throw UnimplementedError(
-        '[getAudioTexture2D] in not supported on the web platfom!');
+  PlayerErrors getAudioTexture2D(AudioData samples) {
+    final e = wasmModule.getAudioTexture2D(samples.ctrl.samplesPtr);
+    return PlayerErrors.values[e];
   }
 
   @override
   Duration getLength(SoundHash soundHash) {
-    return _getLength(soundHash.hash).toDuration();
+    return wasmModule.getLength(soundHash.hash).toDuration();
   }
 
   @override
   int seek(SoundHandle handle, Duration time) {
-    return _seek(handle.id, time.toDouble());
+    return wasmModule.seek(handle.id, time.toDouble());
   }
 
   @override
   Duration getPosition(SoundHandle handle) {
-    return _getPosition(handle.id).toDuration();
+    return wasmModule.getPosition(handle.id).toDuration();
   }
 
   @override
   double getGlobalVolume() {
-    return _getGlobalVolume();
+    return wasmModule.getGlobalVolume();
   }
 
   @override
   int setGlobalVolume(double volume) {
-    return _setGlobalVolume(volume);
+    return wasmModule.setGlobalVolume(volume);
   }
 
   @override
   double getVolume(SoundHandle handle) {
-    return _getVolume(handle.id);
+    return wasmModule.getVolume(handle.id);
   }
 
   @override
   int setVolume(SoundHandle handle, double volume) {
-    return _setVolume(handle.id, volume);
+    return wasmModule.setVolume(handle.id, volume);
   }
 
   @override
   bool getIsValidVoiceHandle(SoundHandle handle) {
-    return _getIsValidVoiceHandle(handle.id) == 1;
+    return wasmModule.getIsValidVoiceHandle(handle.id) == 1;
   }
 
   @override
   int getActiveVoiceCount() {
-    return _getActiveVoiceCount();
+    return wasmModule.getActiveVoiceCount();
   }
 
   @override
   int countAudioSource(SoundHash soundHash) {
-    return _countAudioSource(soundHash.hash);
+    return wasmModule.countAudioSource(soundHash.hash);
   }
 
   @override
   int getVoiceCount() {
-    return _getVoiceCount();
+    return wasmModule.getVoiceCount();
   }
 
   @override
   bool getProtectVoice(SoundHandle handle) {
-    return _getProtectVoice(handle.id) == 1;
+    return wasmModule.getProtectVoice(handle.id) == 1;
   }
 
   @override
   void setProtectVoice(SoundHandle handle, bool protect) {
-    return _setProtectVoice(handle.id, protect ? 1 : 0);
+    return wasmModule.setProtectVoice(handle.id, protect ? 1 : 0);
   }
 
   @override
   int getMaxActiveVoiceCount() {
-    return _getMaxActiveVoiceCount();
+    return wasmModule.getMaxActiveVoiceCount();
   }
 
   @override
   void setMaxActiveVoiceCount(int maxVoiceCount) {
-    return _setMaxActiveVoiceCount(maxVoiceCount);
+    return wasmModule.setMaxActiveVoiceCount(maxVoiceCount);
   }
 
   // ///////////////////////////////////////
@@ -415,54 +389,54 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
 
   @override
   int fadeGlobalVolume(double to, Duration duration) {
-    return _fadeGlobalVolume(to, duration.toDouble());
+    return wasmModule.fadeGlobalVolume(to, duration.toDouble());
   }
 
   @override
   int fadeVolume(SoundHandle handle, double to, Duration duration) {
-    return _fadeVolume(handle.id, to, duration.toDouble());
+    return wasmModule.fadeVolume(handle.id, to, duration.toDouble());
   }
 
   @override
   int fadePan(SoundHandle handle, double to, Duration duration) {
-    return _fadePan(handle.id, to, duration.toDouble());
+    return wasmModule.fadePan(handle.id, to, duration.toDouble());
   }
 
   @override
   int fadeRelativePlaySpeed(SoundHandle handle, double to, Duration time) {
-    return _fadeRelativePlaySpeed(handle.id, to, time.toDouble());
+    return wasmModule.fadeRelativePlaySpeed(handle.id, to, time.toDouble());
   }
 
   @override
   int schedulePause(SoundHandle handle, Duration duration) {
-    return _schedulePause(handle.id, duration.toDouble());
+    return wasmModule.schedulePause(handle.id, duration.toDouble());
   }
 
   @override
   int scheduleStop(SoundHandle handle, Duration duration) {
-    return _scheduleStop(handle.id, duration.toDouble());
+    return wasmModule.scheduleStop(handle.id, duration.toDouble());
   }
 
   @override
   int oscillateVolume(
       SoundHandle handle, double from, double to, Duration time) {
-    return _oscillateVolume(handle.id, from, to, time.toDouble());
+    return wasmModule.oscillateVolume(handle.id, from, to, time.toDouble());
   }
 
   @override
   int oscillatePan(SoundHandle handle, double from, double to, Duration time) {
-    return _oscillatePan(handle.id, from, to, time.toDouble());
+    return wasmModule.oscillatePan(handle.id, from, to, time.toDouble());
   }
 
   @override
   int oscillateRelativePlaySpeed(
       SoundHandle handle, double from, double to, Duration time) {
-    return _oscillateRelativePlaySpeed(handle.id, from, to, time.toDouble());
+    return wasmModule.oscillateRelativePlaySpeed(handle.id, from, to, time.toDouble());
   }
 
   @override
   int oscillateGlobalVolume(double from, double to, Duration time) {
-    return _oscillateGlobalVolume(from, to, time.toDouble());
+    return wasmModule.oscillateGlobalVolume(from, to, time.toDouble());
   }
 
   // ///////////////////////////////////////
@@ -472,55 +446,55 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
   @override
   ({PlayerErrors error, int index}) isFilterActive(int filterType) {
     // ignore: omit_local_variable_types
-    final idPtr = malloc(4); // 4 bytes for an int
-    final e = _isFilterActive(filterType, idPtr);
-    final ret = (error: PlayerErrors.values[e], index: getValue(idPtr, '*'));
-    free(idPtr);
+    final idPtr = wasmModule.malloc(4); // 4 bytes for an int
+    final e = wasmModule.isFilterActive(filterType, idPtr);
+    final ret = (error: PlayerErrors.values[e], index: wasmModule.getI32Value(idPtr, '*'));
+    wasmModule.free(idPtr);
     return ret;
   }
 
   @override
   ({PlayerErrors error, List<String> names}) getFilterParamNames(
       int filterType) {
-    final paramsCountPtr = malloc(4); // 4 bytes for an int
-    final namesPtr = malloc(30 * 20); // list of 30 String with 20 chars
-    final e = _getFilterParamNames(filterType, paramsCountPtr, namesPtr);
+    final paramsCountPtr = wasmModule.malloc(4); // 4 bytes for an int
+    final namesPtr = wasmModule.malloc(30 * 20); // list of 30 String with 20 chars
+    final e = wasmModule.getFilterParamNames(filterType, paramsCountPtr, namesPtr);
 
     final pNames = <String>[];
     var offsetPtr = 0;
-    for (var i = 0; i < getValue(paramsCountPtr, '*'); i++) {
-      final namePtr = getValue(namesPtr + offsetPtr, '*');
-      final name = _utf8ToString(namePtr);
+    for (var i = 0; i < wasmModule.getI32Value(paramsCountPtr, '*'); i++) {
+      final namePtr = wasmModule.getI32Value(namesPtr + offsetPtr, '*');
+      final name = wasmModule.utf8ToString(namePtr);
       offsetPtr += name.length;
 
       pNames.add(name);
     }
 
     final ret = (error: PlayerErrors.values[e], names: pNames);
-    free(namesPtr);
-    free(paramsCountPtr);
+    wasmModule.free(namesPtr);
+    wasmModule.free(paramsCountPtr);
     return ret;
   }
 
   @override
   PlayerErrors addGlobalFilter(int filterType) {
-    final e = _addGlobalFilter(filterType);
+    final e = wasmModule.addGlobalFilter(filterType);
     return PlayerErrors.values[e];
   }
 
   @override
   int removeGlobalFilter(int filterType) {
-    return _removeGlobalFilter(filterType);
+    return wasmModule.removeGlobalFilter(filterType);
   }
 
   @override
   int setFilterParams(int filterType, int attributeId, double value) {
-    return _setFxParams(filterType, attributeId, value);
+    return wasmModule.setFxParams(filterType, attributeId, value);
   }
 
   @override
   double getFilterParams(int filterType, int attributeId) {
-    return _getFxParams(filterType, attributeId);
+    return wasmModule.getFxParams(filterType, attributeId);
   }
 
   // //////////////////////////////////////
@@ -541,8 +515,8 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     bool looping = false,
     Duration loopingStartAt = Duration.zero,
   }) {
-    final handlePtr = malloc(4); // 4 bytes for an int
-    final result = _play3d(
+    final handlePtr = wasmModule.malloc(4); // 4 bytes for an int
+    final result = wasmModule.play3d(
       soundHash.hash,
       posX,
       posY,
@@ -558,22 +532,22 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     );
 
     /// "*" means unsigned int 32
-    final newHandle = getValue(handlePtr, '*');
+    final newHandle = wasmModule.getI32Value(handlePtr, '*');
     final ret =
         (error: PlayerErrors.values[result], newHandle: SoundHandle(newHandle));
-    free(handlePtr);
+    wasmModule.free(handlePtr);
 
     return ret;
   }
 
   @override
   void set3dSoundSpeed(double speed) {
-    return _set3dSoundSpeed(speed);
+    return wasmModule.set3dSoundSpeed(speed);
   }
 
   @override
   double get3dSoundSpeed() {
-    return _get3dSoundSpeed();
+    return wasmModule.get3dSoundSpeed();
   }
 
   @override
@@ -591,7 +565,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     double velocityY,
     double velocityZ,
   ) {
-    return _set3dListenerParameters(
+    return wasmModule.set3dListenerParameters(
       posX,
       posY,
       posZ,
@@ -609,17 +583,17 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
 
   @override
   void set3dListenerPosition(double posX, double posY, double posZ) {
-    return _set3dListenerPosition(posX, posY, posZ);
+    return wasmModule.set3dListenerPosition(posX, posY, posZ);
   }
 
   @override
   void set3dListenerAt(double atX, double atY, double atZ) {
-    return _set3dListenerAt(atX, atY, atZ);
+    return wasmModule.set3dListenerAt(atX, atY, atZ);
   }
 
   @override
   void set3dListenerUp(double upX, double upY, double upZ) {
-    return _set3dListenerUp(upX, upY, upZ);
+    return wasmModule.set3dListenerUp(upX, upY, upZ);
   }
 
   @override
@@ -628,7 +602,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     double velocityY,
     double velocityZ,
   ) {
-    return _set3dListenerVelocity(velocityX, velocityY, velocityZ);
+    return wasmModule.set3dListenerVelocity(velocityX, velocityY, velocityZ);
   }
 
   @override
@@ -641,7 +615,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     double velocityY,
     double velocityZ,
   ) {
-    return _set3dSourceParameters(
+    return wasmModule.set3dSourceParameters(
       handle.id,
       posX,
       posY,
@@ -655,7 +629,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
   @override
   void set3dSourcePosition(
       SoundHandle handle, double posX, double posY, double posZ) {
-    return _set3dSourcePosition(handle.id, posX, posY, posZ);
+    return wasmModule.set3dSourcePosition(handle.id, posX, posY, posZ);
   }
 
   @override
@@ -665,7 +639,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     double velocityY,
     double velocityZ,
   ) {
-    return _set3dSourceVelocity(handle.id, velocityX, velocityY, velocityZ);
+    return wasmModule.set3dSourceVelocity(handle.id, velocityX, velocityY, velocityZ);
   }
 
   @override
@@ -674,7 +648,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     double minDistance,
     double maxDistance,
   ) {
-    return _set3dSourceMinMaxDistance(handle.id, minDistance, maxDistance);
+    return wasmModule.set3dSourceMinMaxDistance(handle.id, minDistance, maxDistance);
   }
 
   @override
@@ -683,7 +657,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     int attenuationModel,
     double attenuationRolloffFactor,
   ) {
-    return _set3dSourceAttenuation(
+    return wasmModule.set3dSourceAttenuation(
       handle.id,
       attenuationModel,
       attenuationRolloffFactor,
@@ -692,348 +666,6 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
 
   @override
   void set3dSourceDopplerFactor(SoundHandle handle, double dopplerFactor) {
-    return _set3dSourceDopplerFactor(handle.id, dopplerFactor);
+    return wasmModule.set3dSourceDopplerFactor(handle.id, dopplerFactor);
   }
 }
-
-// //////////////////////////////////////
-//  JS external methods
-// //////////////////////////////////////
-
-@JS('Module._malloc')
-external int _malloc(int bytesCount);
-
-@JS('Module._free')
-external void _free(int ptrAddress);
-
-@JS('Module.getValue')
-external int _getValue(int ptrAddress, String type);
-
-@JS('Module.UTF8ToString')
-external String _utf8ToString(int ptrAddress);
-
-@JS('Module.setValue')
-external void _setValue(int ptrAddress, int value, String type);
-
-@JS('Module.cwrap')
-external JSFunction _cwrap(
-  JSString fName,
-  JSString returnType,
-  JSArray<JSString> argTypes,
-);
-
-@JS('Module.ccall')
-external JSFunction _ccall(
-  JSString fName,
-  JSString returnType,
-  JSArray<JSString> argTypes,
-  JSArray<JSAny> args,
-);
-
-@JS('Module._createWorkerInWasm')
-external void _createWorkerInWasm();
-
-@JS('Module._sendToWorker')
-external void _sendToWorker(int message, int value);
-
-@JS('Module.worker')
-external web.Worker wasmWorker;
-
-@JS('Module._initEngine')
-external int _initEngine();
-
-@JS('Module._dispose')
-external void _deinit();
-
-@JS('Module._isInited')
-external int _isInited();
-
-@JS('Module._loadFile')
-external int _loadFile(int completeFileNamePtr, int loadIntoMem, int hashPtr);
-
-@JS('Module._loadMem')
-external int _loadMem(
-  int uniqueNamePtr,
-  int memPtr,
-  int length,
-  int hashPtr,
-);
-
-@JS('Module._loadWaveform')
-external int _loadWaveform(
-    int waveform, bool superWave, double scale, double detune, int hashPtr);
-
-@JS('Module._setWaveformScale')
-external void _setWaveformScale(int soundHash, double newScale);
-
-@JS('Module._setWaveformDetune')
-external void _setWaveformDetune(int soundHash, double newDetune);
-
-@JS('Module._setWaveformFreq')
-external void _setWaveformFreq(int soundHash, double newFreq);
-
-@JS('Module._setSuperWave')
-external void _setSuperWave(int soundHash, int superwave);
-
-@JS('Module._setWaveform')
-external void _setWaveform(int soundHash, int newWaveform);
-
-@JS('Module._speechText')
-external int _speechText(int textToSpeechPtr, int handlePtr);
-
-@JS('Module._pauseSwitch')
-external void _pauseSwitch(int handle);
-
-@JS('Module._setPause')
-external void _setPause(int handle, int pause);
-
-@JS('Module._getPause')
-external int _getPause(int handle);
-
-@JS('Module._setRelativePlaySpeed')
-external void _setRelativePlaySpeed(int handle, double speed);
-
-@JS('Module._getRelativePlaySpeed')
-external double _getRelativePlaySpeed(int handle);
-
-@JS('Module._play')
-external int _play(int soundHash, double volume, double pan, bool paused,
-    bool looping, double loopingStartAt, int handlePtr);
-
-@JS('Module._stop')
-external void _stop(int handle);
-
-@JS('Module._disposeSound')
-external void _disposeSound(int soundHash);
-
-@JS('Module._disposeAllSound')
-external void _disposeAllSound();
-
-@JS('Module._getLooping')
-external int _getLooping(int handle);
-
-@JS('Module._setLooping')
-external void _setLooping(int handle, int enable);
-
-@JS('Module._getLoopPoint')
-external double _getLoopPoint(int handle);
-
-@JS('Module._setLoopPoint')
-external void _setLoopPoint(int handle, double time);
-
-@JS('Module._setVisualizationEnabled')
-external void _setVisualizationEnabled(int enabled);
-
-@JS('Module._getVisualizationEnabled')
-external int _getVisualizationEnabled();
-
-// @JS('Module._getFft')
-// external void _getFft(XXXX fft);
-
-// @JS('Module._getWave')
-// external void _getWave(XXXX wave);
-
-// @JS('Module._setFftSmoothing')
-// external void _setFftSmoothing(double smooth);
-
-// @JS('Module._getAudioTexture')
-// external void _getAudioTexture(XXXX samples);
-
-// @JS('Module._getAudioTexture2D')
-// external void _getAudioTexture2D(XXXX samples);
-
-@JS('Module._getLength')
-external double _getLength(int soundHash);
-
-@JS('Module._seek')
-external int _seek(int handle, double time);
-
-@JS('Module._getPosition')
-external double _getPosition(int handle);
-
-@JS('Module._getGlobalVolume')
-external double _getGlobalVolume();
-
-@JS('Module._setGlobalVolume')
-external int _setGlobalVolume(double volume);
-
-@JS('Module._getVolume')
-external double _getVolume(int handle);
-
-@JS('Module._setVolume')
-external int _setVolume(int handle, double volume);
-
-@JS('Module._getIsValidVoiceHandle')
-external int _getIsValidVoiceHandle(int handle);
-
-@JS('Module._getActiveVoiceCount')
-external int _getActiveVoiceCount();
-
-@JS('Module._countAudioSource')
-external int _countAudioSource(int soundHash);
-
-@JS('Module._getVoiceCount')
-external int _getVoiceCount();
-
-@JS('Module._getProtectVoice')
-external int _getProtectVoice(int handle);
-
-@JS('Module._setProtectVoice')
-external void _setProtectVoice(int handle, int protect);
-
-@JS('Module._getMaxActiveVoiceCount')
-external int _getMaxActiveVoiceCount();
-
-@JS('Module._setMaxActiveVoiceCount')
-external void _setMaxActiveVoiceCount(int maxVoiceCount);
-
-@JS('Module._fadeGlobalVolume')
-external int _fadeGlobalVolume(double to, double duration);
-
-@JS('Module._fadeVolume')
-external int _fadeVolume(int handle, double to, double duration);
-
-@JS('Module._fadePan')
-external int _fadePan(int handle, double to, double duration);
-
-@JS('Module._fadeRelativePlaySpeed')
-external int _fadeRelativePlaySpeed(int handle, double to, double duration);
-
-@JS('Module._schedulePause')
-external int _schedulePause(int handle, double duration);
-
-@JS('Module._scheduleStop')
-external int _scheduleStop(int handle, double duration);
-
-@JS('Module._oscillateVolume')
-external int _oscillateVolume(int handle, double from, double to, double time);
-
-@JS('Module._oscillatePan')
-external int _oscillatePan(int handle, double from, double to, double time);
-
-@JS('Module._oscillateRelativePlaySpeed')
-external int _oscillateRelativePlaySpeed(
-    int handle, double from, double to, double time);
-
-@JS('Module._oscillateGlobalVolume')
-external int _oscillateGlobalVolume(double from, double to, double time);
-
-@JS('Module._isFilterActive')
-external int _isFilterActive(int filterType, int idPtr);
-
-@JS('Module._getFilterParamNames')
-external int _getFilterParamNames(
-  int filterType,
-  int paramsCountPtr,
-  int namesPtr,
-);
-
-@JS('Module._addGlobalFilter')
-external int _addGlobalFilter(int filterType);
-
-@JS('Module._removeGlobalFilter')
-external int _removeGlobalFilter(int filterType);
-
-@JS('Module._setFxParams')
-external int _setFxParams(int filterType, int attributeId, double value);
-
-@JS('Module._getFxParams')
-external double _getFxParams(int filterType, int attributeId);
-
-@JS('Module._play3d')
-external int _play3d(
-  int soundHash,
-  double posX,
-  double posY,
-  double posZ,
-  double velX,
-  double velY,
-  double velZ,
-  double volume,
-  int paused,
-  int looping,
-  double loopingStartAt,
-  int handlePtr,
-);
-
-@JS('Module._set3dSoundSpeed')
-external void _set3dSoundSpeed(double speed);
-
-@JS('Module._get3dSoundSpeed')
-external double _get3dSoundSpeed();
-
-@JS('Module._set3dListenerParameters')
-external void _set3dListenerParameters(
-  double posX,
-  double posY,
-  double posZ,
-  double atX,
-  double atY,
-  double atZ,
-  double upX,
-  double upY,
-  double upZ,
-  double velocityX,
-  double velocityY,
-  double velocityZ,
-);
-
-@JS('Module._set3dListenerPosition')
-external void _set3dListenerPosition(double posX, double posY, double posZ);
-
-@JS('Module._set3dListenerAt')
-external void _set3dListenerAt(double atX, double atY, double atZ);
-
-@JS('Module._set3dListenerUp')
-external void _set3dListenerUp(double upX, double upY, double upZ);
-
-@JS('Module._set3dListenerVelocity')
-external void _set3dListenerVelocity(
-  double velocityX,
-  double velocityY,
-  double velocityZ,
-);
-
-@JS('Module._set3dSourceParameters')
-external void _set3dSourceParameters(
-  int handle,
-  double posX,
-  double posY,
-  double posZ,
-  double velocityX,
-  double velocityY,
-  double velocityZ,
-);
-
-@JS('Module._set3dSourcePosition')
-external void _set3dSourcePosition(
-  int handle,
-  double posX,
-  double posY,
-  double posZ,
-);
-
-@JS('Module._set3dSourceVelocity')
-external void _set3dSourceVelocity(
-  int handle,
-  double velocityX,
-  double velocityY,
-  double velocityZ,
-);
-
-@JS('Module._set3dSourceMinMaxDistance')
-external void _set3dSourceMinMaxDistance(
-  int handle,
-  double minDistance,
-  double maxDistance,
-);
-
-@JS('Module._set3dSourceAttenuation')
-external void _set3dSourceAttenuation(
-  int handle,
-  int attenuationModel,
-  double attenuationRolloffFactor,
-);
-
-@JS('Module._set3dSourceDopplerFactor')
-external void _set3dSourceDopplerFactor(int handle, double dopplerFactor);

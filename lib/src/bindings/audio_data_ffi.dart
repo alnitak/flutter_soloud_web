@@ -12,6 +12,11 @@ typedef SampleFormat1D = Pointer<Float>;
 @experimental
 @immutable
 class AudioDataCtrl {
+
+  /// To reflect [AudioDataCtrl] for web. Not used with `dart:ffi`
+  final int _samplesPtr = 0;
+  int get samplesPtr => _samplesPtr;
+
   SampleFormat2D allocSample2D() {
     return calloc();
   }

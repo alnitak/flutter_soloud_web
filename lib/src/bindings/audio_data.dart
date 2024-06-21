@@ -129,27 +129,28 @@ class AudioData {
   AudioData(
     this._getSamplesFrom,
     this._getSamplesKind,
-  ) : _ctrl = AudioDataCtrl() {
+  ) : ctrl = AudioDataCtrl() {
     if (_getSamplesFrom == GetSamplesFrom.player) {
       if (_getSamplesKind == GetSamplesKind.texture) {
-        _updateCallback = _ctrl.texture2DCallback;
-        _samples2D = _ctrl.allocSample2D();
+        _updateCallback = ctrl.texture2DCallback;
+        _samples2D = ctrl.allocSample2D();
       } else {
-        _updateCallback = _ctrl.textureCallback;
-        _samples1D = _ctrl.allocSample1D();
+        _updateCallback = ctrl.textureCallback;
+        _samples1D = ctrl.allocSample1D();
       }
     } else {
       if (_getSamplesKind == GetSamplesKind.texture) {
-        _updateCallback = _ctrl.captureTexture2DCallback;
-        _samples2D = _ctrl.allocSample2D();
+        _updateCallback = ctrl.captureTexture2DCallback;
+        _samples2D = ctrl.allocSample2D();
       } else {
-        _updateCallback = _ctrl.captureAudioTextureCallback;
-        _samples1D = _ctrl.allocSample1D();
+        _updateCallback = ctrl.captureAudioTextureCallback;
+        _samples1D = ctrl.allocSample1D();
       }
     }
   }
 
-  final AudioDataCtrl _ctrl;
+  @internal
+  final AudioDataCtrl ctrl;
 
   /// Where the audio 2D data is stored.
   late final SampleFormat2D _samples2D;
@@ -201,7 +202,7 @@ class AudioData {
   /// Dispose the memory allocated to acquire audio data.
   /// Must be called when there is no more need of [AudioData].
   void dispose() {
-    _ctrl.dispose(_samples1D, _samples2D);
+    ctrl.dispose(_samples1D, _samples2D);
   }
 
   /// Get the audio data at offset [offset].
@@ -213,7 +214,7 @@ class AudioData {
     if (!SoLoudController().soLoudFFI.getVisualizationEnabled()) {
       throw const SoLoudVisualizationNotEnabledException();
     }
-    return _ctrl.get1D(_samples1D, offset.value);
+    return ctrl.get1D(_samples1D, offset.value);
   }
 
   /// Get the audio data at row [row] and column [column].
@@ -228,11 +229,11 @@ class AudioData {
     if (!SoLoudController().soLoudFFI.getVisualizationEnabled()) {
       throw const SoLoudVisualizationNotEnabledException();
     }
-    return _ctrl.get2D(_samples2D, row.value, column.value);
+    return ctrl.get2D(_samples2D, row.value, column.value);
   }
 
   // Wether or not the current used data is empty.
   bool get isEmpty => _getSamplesKind == GetSamplesKind.texture
-      ? _ctrl.isEmpty2D(_samples2D)
-      : _ctrl.isEmpty1D(_samples1D);
+      ? ctrl.isEmpty2D(_samples2D)
+      : ctrl.isEmpty1D(_samples1D);
 }

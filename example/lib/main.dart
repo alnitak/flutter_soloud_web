@@ -21,9 +21,9 @@ import 'package:flutter_soloud_example/bars.dart';
 import 'package:flutter_soloud/src/bindings/audio_data_extensions.dart';
 
 void main() async {
-  await SoLoud.instance.init();
-  SoLoudCapture.instance.initialize();
-  SoLoud.instance.setVisualizationEnabled(true);
+  // await SoLoud.instance.init();
+  // SoLoudCapture.instance.initialize();
+  // SoLoud.instance.setVisualizationEnabled(true);
 
   runApp(const MyApp());
 }
@@ -83,8 +83,9 @@ class _MyAppState extends State<MyApp> {
               OutlinedButton(
                 onPressed: () async {
                   try {
-                    await _flutterSoloudPlugin.init();
-                    _flutterSoloudPlugin.setVisualizationEnabled(true);
+                    await SoLoud.instance.init();
+                    // SoLoudCapture.instance.initialize();
+                    // SoLoud.instance.setVisualizationEnabled(true);
                   } on Exception catch (_) {}
                 },
                 child: const Text('init'),
@@ -165,7 +166,8 @@ class _MyAppState extends State<MyApp> {
                 onPressed: () async {
                   try {
                     if (audioSource != null) {
-                      soundHandle = await _flutterSoloudPlugin.play(audioSource!);
+                      soundHandle =
+                          await _flutterSoloudPlugin.play(audioSource!);
                     }
                   } on Exception catch (_) {}
                 },
@@ -200,19 +202,19 @@ class _MyAppState extends State<MyApp> {
                 child: const Text('dispose'),
               ),
               const SizedBox(height: 40),
-              ValueListenableBuilder<double>(
-                  valueListenable: smooth,
-                  builder: (_, value, __) {
-                    return Slider(
-                        value: value,
-                        onChanged: (v) {
-                          smooth.value = v;
-                          try {
-                            SoLoud.instance.setFftSmoothing(smooth.value);
-                          } on Exception catch (_) {}
-                        });
-                  }),
-              const Bars(),
+              // ValueListenableBuilder<double>(
+              //     valueListenable: smooth,
+              //     builder: (_, value, __) {
+              //       return Slider(
+              //           value: value,
+              //           onChanged: (v) {
+              //             smooth.value = v;
+              //             try {
+              //               SoLoud.instance.setFftSmoothing(smooth.value);
+              //             } on Exception catch (_) {}
+              //           });
+              //     }),
+              // const Bars(),
             ],
           ),
         ),

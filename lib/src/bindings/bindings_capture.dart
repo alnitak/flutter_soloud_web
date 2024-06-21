@@ -29,6 +29,9 @@ abstract class FlutterCapture {
   CaptureErrors stopCapture();
 
   @mustBeOverridden
+  void getCaptureAudioTexture(AudioData samples);
+
+  @mustBeOverridden
   CaptureErrors getCaptureAudioTexture2D(AudioData samples);
 
   @mustBeOverridden
