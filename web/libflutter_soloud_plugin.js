@@ -734,7 +734,7 @@ function dbg(...args) {
 }
 
 var ASM_CONSTS = {
- 67776: ($0, $1, $2, $3, $4) => {
+ 67744: ($0, $1, $2, $3, $4) => {
   if (typeof window === "undefined" || (window.AudioContext || window.webkitAudioContext) === undefined) {
    return 0;
   }
@@ -806,7 +806,7 @@ var ASM_CONSTS = {
   window.miniaudio.referenceCount += 1;
   return 1;
  },
- 69954: () => {
+ 69922: () => {
   if (typeof (window.miniaudio) !== "undefined") {
    miniaudio.unlock_event_types.map(function(event_type) {
     document.removeEventListener(event_type, miniaudio.unlock, true);
@@ -817,8 +817,8 @@ var ASM_CONSTS = {
    }
   }
  },
- 70244: () => (navigator.mediaDevices !== undefined && navigator.mediaDevices.getUserMedia !== undefined),
- 70348: () => {
+ 70212: () => (navigator.mediaDevices !== undefined && navigator.mediaDevices.getUserMedia !== undefined),
+ 70316: () => {
   try {
    var temp = new (window.AudioContext || window.webkitAudioContext);
    var sampleRate = temp.sampleRate;
@@ -828,7 +828,7 @@ var ASM_CONSTS = {
    return 0;
   }
  },
- 70519: ($0, $1, $2, $3, $4, $5) => {
+ 70487: ($0, $1, $2, $3, $4, $5) => {
   var deviceType = $0;
   var channels = $1;
   var sampleRate = $2;
@@ -899,8 +899,8 @@ var ASM_CONSTS = {
   device.pDevice = pDevice;
   return window.miniaudio.track_device(device);
  },
- 73396: $0 => window.miniaudio.get_device_by_index($0).webaudio.sampleRate,
- 73469: $0 => {
+ 73364: $0 => window.miniaudio.get_device_by_index($0).webaudio.sampleRate,
+ 73437: $0 => {
   var device = window.miniaudio.get_device_by_index($0);
   if (device.scriptNode !== undefined) {
    device.scriptNode.onaudioprocess = function(e) {};
@@ -915,20 +915,20 @@ var ASM_CONSTS = {
   device.webaudio = undefined;
   device.pDevice = undefined;
  },
- 73869: $0 => {
+ 73837: $0 => {
   window.miniaudio.untrack_device_by_index($0);
  },
- 73919: $0 => {
+ 73887: $0 => {
   var device = window.miniaudio.get_device_by_index($0);
   device.webaudio.resume();
   device.state = window.miniaudio.device_state.started;
  },
- 74058: $0 => {
+ 74026: $0 => {
   var device = window.miniaudio.get_device_by_index($0);
   device.webaudio.suspend();
   device.state = window.miniaudio.device_state.stopped;
  },
- 74198: () => {
+ 74166: () => {
   if (!Module.workerWasm) {
    var workerUri = "assets/packages/flutter_soloud/web/worker.dart.js";
    console.log("EM_ASM creating web worker!");
@@ -937,7 +937,7 @@ var ASM_CONSTS = {
    console.log("EM_ASM web worker already created!");
   }
  },
- 74446: ($0, $1) => {
+ 74414: ($0, $1) => {
   if (Module.workerWasm) {
    console.log("EM_ASM posting message " + UTF8ToString($0) + " with value " + $1);
    Module.workerWasm.postMessage(JSON.stringify({

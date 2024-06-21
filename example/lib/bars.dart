@@ -11,9 +11,7 @@ import 'package:flutter_soloud/src/soloud_capture.dart';
 class Bars extends StatefulWidget {
   /// If true get audio data from the player else from the mic
 
-  const Bars({
-    super.key
-  });
+  const Bars({super.key});
 
   @override
   State<Bars> createState() => BarsState();
@@ -21,10 +19,10 @@ class Bars extends StatefulWidget {
 
 class BarsState extends State<Bars> with SingleTickerProviderStateMixin {
   late final Ticker ticker;
-final AudioData audioData = AudioData(
-      GetSamplesFrom.player,
-      GetSamplesKind.linear,
-    );
+  final AudioData audioData = AudioData(
+    GetSamplesFrom.player,
+    GetSamplesKind.linear,
+  );
   @override
   void initState() {
     super.initState();

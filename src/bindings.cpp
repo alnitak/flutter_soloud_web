@@ -450,14 +450,10 @@ extern "C"
         double loopingStartAt,
         unsigned int *handle)
     {
-        printf("CPP PLAY1\n");
         if (player.get() == nullptr || !player.get()->isInited())
             return backendNotInited;
-        printf("CPP PLAY2\n");
         unsigned int newHandle = player.get()->play(soundHash, volume, pan, paused, looping, loopingStartAt);
-        printf("CPP PLAY3  %u\n", newHandle);
         *handle = newHandle;
-        printf("CPP PLAY4\n");
         return *handle == 0 ? soundHashNotFound : noError;
     }
 
