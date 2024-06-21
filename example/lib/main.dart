@@ -85,7 +85,7 @@ class _MyAppState extends State<MyApp> {
                   try {
                     await SoLoud.instance.init();
                     // SoLoudCapture.instance.initialize();
-                    // SoLoud.instance.setVisualizationEnabled(true);
+                    SoLoud.instance.setVisualizationEnabled(true);
                   } on Exception catch (_) {}
                 },
                 child: const Text('init'),
@@ -202,19 +202,19 @@ class _MyAppState extends State<MyApp> {
                 child: const Text('dispose'),
               ),
               const SizedBox(height: 40),
-              // ValueListenableBuilder<double>(
-              //     valueListenable: smooth,
-              //     builder: (_, value, __) {
-              //       return Slider(
-              //           value: value,
-              //           onChanged: (v) {
-              //             smooth.value = v;
-              //             try {
-              //               SoLoud.instance.setFftSmoothing(smooth.value);
-              //             } on Exception catch (_) {}
-              //           });
-              //     }),
-              // const Bars(),
+              ValueListenableBuilder<double>(
+                  valueListenable: smooth,
+                  builder: (_, value, __) {
+                    return Slider(
+                        value: value,
+                        onChanged: (v) {
+                          smooth.value = v;
+                          try {
+                            SoLoud.instance.setFftSmoothing(smooth.value);
+                          } on Exception catch (_) {}
+                        });
+                  }),
+              const Bars(),
             ],
           ),
         ),

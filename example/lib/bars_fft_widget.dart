@@ -7,7 +7,7 @@ import 'package:flutter_soloud/src/bindings/audio_data_extensions.dart';
 /// Draw the audio FFT data
 ///
 class BarsFftWidget extends StatelessWidget {
-  BarsFftWidget({
+  const BarsFftWidget({
     super.key,
     required this.audioData,
     required this.minFreq,
@@ -73,6 +73,7 @@ class FftPainter extends CustomPainter {
       late final double barHeight;
       try {
         barHeight = size.height * audioData.get1D(SampleOffset(i));
+        // barHeight = size.height * audioData.get2D(SampleRow(0), SampleColumn(i));
       } on Exception {
         barHeight = 0;
       }

@@ -30,12 +30,12 @@ class AudioDataCtrl {
   }
 
   SampleFormat2D allocSample2D() {
-    _samplesPtr = wasmModule.malloc(512 * 256);
+    _samplesPtr = wasmMalloc(512 * 256 * 4);
     return Float32List(512 * 256);
   }
 
   SampleFormat1D allocSample1D() {
-    _samplesPtr = wasmModule.malloc(512);
+    _samplesPtr = wasmMalloc(512 * 4);
     return Float32List(512);
   }
 
@@ -51,18 +51,18 @@ class AudioDataCtrl {
   void getCaptureAudioTexture(AudioData samples) =>
       SoLoudController().captureFFI.getCaptureAudioTexture(samples);
 
-
   void dispose(SampleFormat1D s1D, SampleFormat2D s2D) {
-    wasmModule.free(_samplesPtr);
+    wasmFree(_samplesPtr);
   }
 
   double get1D(SampleFormat1D s1D, int offset) {
-    return wasmModule.getF32Value(_samplesPtr + offset * 4, 'float');
+    final data = wasmGetF32Value(_samplesPtr + offset * 4, 'float');
+    return data;
   }
 
   double get2D(SampleFormat2D s2D, int row, int column) {
-    final rowPtr = wasmModule.getI32Value(_samplesPtr + row * 4, '*');
-    return wasmModule.getF32Value(rowPtr + column * 4, 'float');
+    final rowPtr = wasmGetI32Value(_samplesPtr + row * 4, '*');
+    return wasmGetF32Value(rowPtr + column * 4, 'float');
   }
 
   bool isEmpty1D(SampleFormat1D s1D) => s1D.isEmpty;

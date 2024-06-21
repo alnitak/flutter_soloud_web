@@ -95,36 +95,12 @@ enum GetSamplesKind {
 /// [SoLoudCapture.instance.setCaptureFftSmoothing].
 ///
 ///
-// TODO(me):
+// TODO(): make AudioData singleton?
 //        add `getWave` and `getFFT`
-//     JS imports in a standalone .dart using extension type
 //     add capture exceptions
+//    fix worker.dart
 @experimental
 class AudioData {
-//   factory AudioData() => _instance ??= AudioData._();
-
-//   AudioData._() : _ctrl = AudioDataCtrl() {
-//     if (_getSamplesFrom == GetSamplesFrom.player) {
-//   if (_getSamplesKind == GetSamplesKind.texture) {
-//     _updateCallback = _ctrl.texture2DCallback;
-//     _samples2D = _ctrl.allocSample2D();
-//   } else {
-//     _updateCallback = _ctrl.textureCallback;
-//     _samples1D = _ctrl.allocSample1D();
-//   }
-// } else {
-//   if (_getSamplesKind == GetSamplesKind.texture) {
-//     _updateCallback = _ctrl.captureTexture2DCallback;
-//     _samples2D = _ctrl.allocSample2D();
-//   } else {
-//     _updateCallback = _ctrl.captureAudioTextureCallback;
-//     _samples1D = _ctrl.allocSample1D();
-//   }
-// }
-//   }
-
-  // static AudioData? _instance;
-
   /// Initialize the way the audio data should be acquired.
   AudioData(
     this._getSamplesFrom,

@@ -12,81 +12,81 @@ class FlutterCaptureWeb extends FlutterCapture {
   @override
   List<CaptureDevice> listCaptureDevices() {
     /// allocate 50 device strings
-    final namesPtr = wasmModule.malloc(50 * 150);
-    final isDefaultPtr = wasmModule.malloc(50 * 4);
-    final nDevicesPtr = wasmModule.malloc(4); // 4 bytes for an int
+    final namesPtr = wasmMalloc(50 * 150);
+    final isDefaultPtr = wasmMalloc(50 * 4);
+    final nDevicesPtr = wasmMalloc(4); // 4 bytes for an int
 
-    wasmModule.listCaptureDevices(
+    wasmListCaptureDevices(
       namesPtr,
       isDefaultPtr,
       nDevicesPtr,
     );
 
-    final nDevices = wasmModule.getI32Value(nDevicesPtr, '*');
+    final nDevices = wasmGetI32Value(nDevicesPtr, '*');
     final devices = <CaptureDevice>[];
     for (var i = 0; i < nDevices; i++) {
-      final namePtr = wasmModule.getI32Value(namesPtr + i * 4, '*');
-      final name = wasmModule.utf8ToString(namePtr);
-      final isDefault = wasmModule.getI32Value(
-          wasmModule.getI32Value(isDefaultPtr + i * 4, '*'), '*');
+      final namePtr = wasmGetI32Value(namesPtr + i * 4, '*');
+      final name = wasmUtf8ToString(namePtr);
+      final isDefault = wasmGetI32Value(
+          wasmGetI32Value(isDefaultPtr + i * 4, '*'), '*');
 
       devices.add(CaptureDevice(name, isDefault == 1));
     }
 
-    wasmModule.freeListCaptureDevices(namesPtr, isDefaultPtr, nDevices);
+    wasmFreeListCaptureDevices(namesPtr, isDefaultPtr, nDevices);
 
-    wasmModule.free(nDevicesPtr);
-    wasmModule.free(isDefaultPtr);
-    wasmModule.free(namesPtr);
+    wasmFree(nDevicesPtr);
+    wasmFree(isDefaultPtr);
+    wasmFree(namesPtr);
 
     return devices;
   }
 
   @override
   CaptureErrors initCapture(int deviceID) {
-    final e = wasmModule.initCapture(deviceID);
+    final e = wasmInitCapture(deviceID);
     return CaptureErrors.values[e];
   }
 
   @override
   void disposeCapture() {
-    return wasmModule.disposeCapture();
+    return wasmDisposeCapture();
   }
 
   @override
   bool isCaptureInited() {
-    return wasmModule.isCaptureInited() == 1 ? true : false;
+    return wasmIsCaptureInited() == 1 ? true : false;
   }
 
   @override
   bool isCaptureStarted() {
-    return wasmModule.isCaptureStarted() == 1 ? true : false;
+    return wasmIsCaptureStarted() == 1 ? true : false;
   }
 
   @override
   CaptureErrors startCapture() {
-    return CaptureErrors.values[wasmModule.startCapture()];
+    return CaptureErrors.values[wasmStartCapture()];
   }
 
   @override
   CaptureErrors stopCapture() {
-    return CaptureErrors.values[wasmModule.stopCapture()];
+    return CaptureErrors.values[wasmStopCapture()];
   }
 
   @override
   void getCaptureAudioTexture(AudioData samples) {
-    wasmModule.getCaptureAudioTexture(samples.ctrl.samplesPtr);
+    wasmGetCaptureAudioTexture(samples.ctrl.samplesPtr);
   }
 
   @override
   CaptureErrors getCaptureAudioTexture2D(AudioData samples) {
-    final e = wasmModule.getCaptureAudioTexture2D(samples.ctrl.samplesPtr);
+    final e = wasmGetCaptureAudioTexture2D(samples.ctrl.samplesPtr);
     return CaptureErrors.values[e];
   }
 
   @override
   CaptureErrors setCaptureFftSmoothing(double smooth) {
-    final e = wasmModule.setCaptureFftSmoothing(smooth);
+    final e = wasmSetCaptureFftSmoothing(smooth);
     return CaptureErrors.values[e];
   }
 }

@@ -22,6 +22,7 @@ class BarsState extends State<Bars> with SingleTickerProviderStateMixin {
   final AudioData audioData = AudioData(
     GetSamplesFrom.player,
     GetSamplesKind.linear,
+    // GetSamplesKind.texture,
   );
   @override
   void initState() {
@@ -41,8 +42,8 @@ class BarsState extends State<Bars> with SingleTickerProviderStateMixin {
       try {
         audioData.updateSamples();
         setState(() {});
-      } on Exception {
-        debugPrint('Player not initialized or visualization is not enabled!');
+      } on Exception catch(e) {
+        debugPrint('$e');
       }
     }
   }

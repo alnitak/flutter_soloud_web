@@ -40,7 +40,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
   /// Create the worker in the WASM Module.
   @override
   void setDartEventCallbacks() {
-    wasmModule.createWorkerInWasm();
+    wasmCreateWorkerInWasm();
   }
 
   /// This is the function called by "web/worker.dart" compiled
@@ -51,24 +51,24 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
   }
 
   void sendMessageToWasmWorker(String message, int value) {
-    final messagePtr = wasmModule.malloc(message.length);
+    final messagePtr = wasmMalloc(message.length);
     for (var i = 0; i < message.length; i++) {
-      wasmModule.setValue(messagePtr + i, message.codeUnits[i], 'i8');
+      wasmSetValue(messagePtr + i, message.codeUnits[i], 'i8');
     }
-    wasmModule.sendToWorker(messagePtr, value);
-    wasmModule.free(messagePtr);
+    wasmSendToWorker(messagePtr, value);
+    wasmFree(messagePtr);
   }
 
   @override
   PlayerErrors initEngine() {
-    return PlayerErrors.values[wasmModule.initEngine()];
+    return PlayerErrors.values[wasmInitEngine()];
   }
 
   @override
-  void deinit() => wasmModule.deinit();
+  void deinit() => wasmDeinit();
 
   @override
-  bool isInited() => wasmModule.isInited() == 1;
+  bool isInited() => wasmIsInited() == 1;
 
   @override
   ({PlayerErrors error, SoundHash soundHash}) loadFile(
@@ -84,16 +84,16 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     String uniqueName,
     Uint8List buffer,
   ) {
-    final hashPtr = wasmModule.malloc(4); // 4 bytes for an int
-    final bytesPtr = wasmModule.malloc(buffer.length);
-    final pathPtr = wasmModule.malloc(uniqueName.length);
+    final hashPtr = wasmMalloc(4); // 4 bytes for an int
+    final bytesPtr = wasmMalloc(buffer.length);
+    final pathPtr = wasmMalloc(uniqueName.length);
     for (var i = 0; i < buffer.length; i++) {
-      wasmModule.setValue(bytesPtr + i, buffer[i], 'i8');
+      wasmSetValue(bytesPtr + i, buffer[i], 'i8');
     }
     for (var i = 0; i < uniqueName.length; i++) {
-      wasmModule.setValue(pathPtr + i, uniqueName.codeUnits[i], 'i8');
+      wasmSetValue(pathPtr + i, uniqueName.codeUnits[i], 'i8');
     }
-    final result = wasmModule.loadMem(
+    final result = wasmLoadMem(
       pathPtr,
       bytesPtr,
       buffer.length,
@@ -101,13 +101,13 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     );
 
     /// "*" means unsigned int 32
-    final hash = wasmModule.getI32Value(hashPtr, '*');
+    final hash = wasmGetI32Value(hashPtr, '*');
     final soundHash = SoundHash(hash);
     final ret = (error: PlayerErrors.values[result], soundHash: soundHash);
 
-    wasmModule.free(hashPtr);
-    wasmModule.free(bytesPtr);
-    wasmModule.free(pathPtr);
+    wasmFree(hashPtr);
+    wasmFree(bytesPtr);
+    wasmFree(pathPtr);
 
     return ret;
   }
@@ -119,8 +119,8 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     double scale,
     double detune,
   ) {
-    final hashPtr = wasmModule.malloc(4); // 4 bytes for an int
-    final result = wasmModule.loadWaveform(
+    final hashPtr = wasmMalloc(4); // 4 bytes for an int
+    final result = wasmLoadWaveform(
       waveform.index,
       superWave,
       scale,
@@ -129,83 +129,83 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     );
 
     /// "*" means unsigned int 32
-    var hash = wasmModule.getI32Value(hashPtr, '*');
+    var hash = wasmGetI32Value(hashPtr, '*');
     final soundHash = SoundHash(hash);
     final ret = (error: PlayerErrors.values[result], soundHash: soundHash);
-    wasmModule.free(hashPtr);
+    wasmFree(hashPtr);
 
     return ret;
   }
 
   @override
   void setWaveformScale(SoundHash hash, double newScale) {
-    return wasmModule.setWaveformScale(hash.hash, newScale);
+    return wasmSetWaveformScale(hash.hash, newScale);
   }
 
   @override
   void setWaveformDetune(SoundHash hash, double newDetune) {
-    return wasmModule.setWaveformDetune(hash.hash, newDetune);
+    return wasmSetWaveformDetune(hash.hash, newDetune);
   }
 
   @override
   void setWaveformFreq(SoundHash hash, double newFreq) {
-    return wasmModule.setWaveformFreq(hash.hash, newFreq);
+    return wasmSetWaveformFreq(hash.hash, newFreq);
   }
 
   @override
   void setWaveformSuperWave(SoundHash hash, int superwave) {
-    return wasmModule.setSuperWave(hash.hash, superwave);
+    return wasmSetSuperWave(hash.hash, superwave);
   }
 
   @override
   void setWaveform(SoundHash hash, WaveForm newWaveform) {
-    return wasmModule.setWaveform(hash.hash, newWaveform.index);
+    return wasmSetWaveform(hash.hash, newWaveform.index);
   }
 
   @override
   ({PlayerErrors error, SoundHandle handle}) speechText(String textToSpeech) {
-    final handlePtr = wasmModule.malloc(4); // 4 bytes for an int
-    final textToSpeechPtr = wasmModule.malloc(textToSpeech.length);
-    final result = wasmModule.speechText(
+    final handlePtr = wasmMalloc(4); // 4 bytes for an int
+    final textToSpeechPtr = wasmMalloc(textToSpeech.length);
+    final result = wasmSpeechText(
       textToSpeechPtr,
       handlePtr,
     );
 
     /// "*" means unsigned int 32
-    final newHandle = wasmModule.getI32Value(handlePtr, '*');
+    final newHandle = wasmGetI32Value(handlePtr, '*');
     final ret = (
       error: PlayerErrors.values[result],
       handle: SoundHandle(newHandle),
     );
-    wasmModule.free(textToSpeechPtr);
-    wasmModule.free(handlePtr);
+    wasmFree(textToSpeechPtr);
+    wasmFree(handlePtr);
 
     return ret;
   }
 
   @override
   void pauseSwitch(SoundHandle handle) {
-    return wasmModule.pauseSwitch(handle.id);
+    return wasmPauseSwitch(handle.id);
   }
 
   @override
   void setPause(SoundHandle handle, int pause) {
-    return wasmModule.setPause(handle.id, pause);
+    return wasmSetPause(handle.id, pause);
   }
 
   @override
   bool getPause(SoundHandle handle) {
-    return wasmModule.getPause(handle.id) == 1;
+    return wasmGetPause(handle.id) == 1;
   }
 
   @override
   void setRelativePlaySpeed(SoundHandle handle, double speed) {
-    return wasmModule.setRelativePlaySpeed(handle.id, speed);
+    return wasmSetRelativePlaySpeed(handle.id, speed);
   }
 
   @override
   double getRelativePlaySpeed(SoundHandle handle) {
-    return wasmModule.getRelativePlaySpeed(handle.id);
+    return wasmGetRelativePlaySpeed(handle.id);
   }
 
   @override
@@ -217,8 +217,8 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     bool looping = false,
     Duration loopingStartAt = Duration.zero,
   }) {
-    final handlePtr = wasmModule.malloc(4); // 4 bytes for an int
-    final result = wasmModule.play(
+    final handlePtr = wasmMalloc(4); // 4 bytes for an int
+    final result = wasmPlay(
       soundHash.hash,
       volume,
       pan,
@@ -229,57 +229,58 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     );
 
     /// "*" means unsigned int 32
-    final newHandle = wasmModule.getI32Value(handlePtr, '*');
+    final newHandle = wasmGetI32Value(handlePtr, '*');
     final ret =
         (error: PlayerErrors.values[result], newHandle: SoundHandle(newHandle));
-    wasmModule.free(handlePtr);
+    wasmFree(handlePtr);
 
     return ret;
   }
 
   @override
   void stop(SoundHandle handle) {
-    return wasmModule.stop(handle.id);
+    return wasmStop(handle.id);
   }
 
   @override
   void disposeSound(SoundHash soundHash) {
-    return wasmModule.disposeSound(soundHash.hash);
+    return wasmDisposeSound(soundHash.hash);
   }
 
   @override
   void disposeAllSound() {
-    return wasmModule.disposeAllSound();
+    return wasmDisposeAllSound();
   }
 
   @override
   bool getLooping(SoundHandle handle) {
-    return wasmModule.getLooping(handle.id) == 1;
+    return wasmGetLooping(handle.id) == 1;
   }
 
   @override
   void setLooping(SoundHandle handle, bool enable) {
-    return wasmModule.setLooping(handle.id, enable ? 1 : 0);
+    return wasmSetLooping(handle.id, enable ? 1 : 0);
   }
 
   @override
   Duration getLoopPoint(SoundHandle handle) {
-    return wasmModule.getLoopPoint(handle.id).toDuration();
+    return wasmGetLoopPoint(handle.id).toDuration();
   }
 
   @override
   void setLoopPoint(SoundHandle handle, Duration timestamp) {
-    wasmModule.setLoopPoint(handle.id, timestamp.toDouble());
+    wasmSetLoopPoint(handle.id, timestamp.toDouble());
   }
 
   @override
   void setVisualizationEnabled(bool enabled) {
-    wasmModule.setVisualizationEnabled(enabled ? 1 : 0);
+    wasmSetVisualizationEnabled(enabled ? 1 : 0);
   }
 
   @override
   bool getVisualizationEnabled() {
-    return wasmModule.getVisualizationEnabled() == 1;
+    bool b = wasmGetVisualizationEnabled() == 1;
+    return b;
   }
 
   @override
@@ -294,93 +295,93 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
 
   @override
   void setFftSmoothing(double smooth) {
-    wasmModule.setFftSmoothing(smooth);
+    wasmSetFftSmoothing(smooth);
   }
 
   @override
   void getAudioTexture(AudioData samples) {
-    wasmModule.getAudioTexture(samples.ctrl.samplesPtr);
+    wasmGetAudioTexture(samples.ctrl.samplesPtr);
   }
 
   @override
   PlayerErrors getAudioTexture2D(AudioData samples) {
-    final e = wasmModule.getAudioTexture2D(samples.ctrl.samplesPtr);
+    final e = wasmGetAudioTexture2D(samples.ctrl.samplesPtr);
     return PlayerErrors.values[e];
   }
 
   @override
   Duration getLength(SoundHash soundHash) {
-    return wasmModule.getLength(soundHash.hash).toDuration();
+    return wasmGetLength(soundHash.hash).toDuration();
   }
 
   @override
   int seek(SoundHandle handle, Duration time) {
-    return wasmModule.seek(handle.id, time.toDouble());
+    return wasmSeek(handle.id, time.toDouble());
   }
 
   @override
   Duration getPosition(SoundHandle handle) {
-    return wasmModule.getPosition(handle.id).toDuration();
+    return wasmGetPosition(handle.id).toDuration();
   }
 
   @override
   double getGlobalVolume() {
-    return wasmModule.getGlobalVolume();
+    return wasmGetGlobalVolume();
   }
 
   @override
   int setGlobalVolume(double volume) {
-    return wasmModule.setGlobalVolume(volume);
+    return wasmSetGlobalVolume(volume);
   }
 
   @override
   double getVolume(SoundHandle handle) {
-    return wasmModule.getVolume(handle.id);
+    return wasmGetVolume(handle.id);
   }
 
   @override
   int setVolume(SoundHandle handle, double volume) {
-    return wasmModule.setVolume(handle.id, volume);
+    return wasmSetVolume(handle.id, volume);
   }
 
   @override
   bool getIsValidVoiceHandle(SoundHandle handle) {
-    return wasmModule.getIsValidVoiceHandle(handle.id) == 1;
+    return wasmGetIsValidVoiceHandle(handle.id) == 1;
   }
 
   @override
   int getActiveVoiceCount() {
-    return wasmModule.getActiveVoiceCount();
+    return wasmGetActiveVoiceCount();
   }
 
   @override
   int countAudioSource(SoundHash soundHash) {
-    return wasmModule.countAudioSource(soundHash.hash);
+    return wasmCountAudioSource(soundHash.hash);
   }
 
   @override
   int getVoiceCount() {
-    return wasmModule.getVoiceCount();
+    return wasmGetVoiceCount();
   }
 
   @override
   bool getProtectVoice(SoundHandle handle) {
-    return wasmModule.getProtectVoice(handle.id) == 1;
+    return wasmGetProtectVoice(handle.id) == 1;
   }
 
   @override
   void setProtectVoice(SoundHandle handle, bool protect) {
-    return wasmModule.setProtectVoice(handle.id, protect ? 1 : 0);
+    return wasmSetProtectVoice(handle.id, protect ? 1 : 0);
   }
 
   @override
   int getMaxActiveVoiceCount() {
-    return wasmModule.getMaxActiveVoiceCount();
+    return wasmGetMaxActiveVoiceCount();
   }
 
   @override
   void setMaxActiveVoiceCount(int maxVoiceCount) {
-    return wasmModule.setMaxActiveVoiceCount(maxVoiceCount);
+    return wasmSetMaxActiveVoiceCount(maxVoiceCount);
   }
 
   // ///////////////////////////////////////
@@ -389,54 +390,54 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
 
   @override
   int fadeGlobalVolume(double to, Duration duration) {
-    return wasmModule.fadeGlobalVolume(to, duration.toDouble());
+    return wasmFadeGlobalVolume(to, duration.toDouble());
   }
 
   @override
   int fadeVolume(SoundHandle handle, double to, Duration duration) {
-    return wasmModule.fadeVolume(handle.id, to, duration.toDouble());
+    return wasmFadeVolume(handle.id, to, duration.toDouble());
   }
 
   @override
   int fadePan(SoundHandle handle, double to, Duration duration) {
-    return wasmModule.fadePan(handle.id, to, duration.toDouble());
+    return wasmFadePan(handle.id, to, duration.toDouble());
   }
 
   @override
   int fadeRelativePlaySpeed(SoundHandle handle, double to, Duration time) {
-    return wasmModule.fadeRelativePlaySpeed(handle.id, to, time.toDouble());
+    return wasmFadeRelativePlaySpeed(handle.id, to, time.toDouble());
   }
 
   @override
   int schedulePause(SoundHandle handle, Duration duration) {
-    return wasmModule.schedulePause(handle.id, duration.toDouble());
+    return wasmSchedulePause(handle.id, duration.toDouble());
   }
 
   @override
   int scheduleStop(SoundHandle handle, Duration duration) {
-    return wasmModule.scheduleStop(handle.id, duration.toDouble());
+    return wasmScheduleStop(handle.id, duration.toDouble());
   }
 
   @override
   int oscillateVolume(
       SoundHandle handle, double from, double to, Duration time) {
-    return wasmModule.oscillateVolume(handle.id, from, to, time.toDouble());
+    return wasmOscillateVolume(handle.id, from, to, time.toDouble());
   }
 
   @override
   int oscillatePan(SoundHandle handle, double from, double to, Duration time) {
-    return wasmModule.oscillatePan(handle.id, from, to, time.toDouble());
+    return wasmOscillatePan(handle.id, from, to, time.toDouble());
   }
 
   @override
   int oscillateRelativePlaySpeed(
       SoundHandle handle, double from, double to, Duration time) {
-    return wasmModule.oscillateRelativePlaySpeed(handle.id, from, to, time.toDouble());
+    return wasmOscillateRelativePlaySpeed(handle.id, from, to, time.toDouble());
   }
 
   @override
   int oscillateGlobalVolume(double from, double to, Duration time) {
-    return wasmModule.oscillateGlobalVolume(from, to, time.toDouble());
+    return wasmOscillateGlobalVolume(from, to, time.toDouble());
   }
 
   // ///////////////////////////////////////
@@ -446,55 +447,56 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
   @override
   ({PlayerErrors error, int index}) isFilterActive(int filterType) {
     // ignore: omit_local_variable_types
-    final idPtr = wasmModule.malloc(4); // 4 bytes for an int
-    final e = wasmModule.isFilterActive(filterType, idPtr);
-    final ret = (error: PlayerErrors.values[e], index: wasmModule.getI32Value(idPtr, '*'));
-    wasmModule.free(idPtr);
+    final idPtr = wasmMalloc(4); // 4 bytes for an int
+    final e = wasmIsFilterActive(filterType, idPtr);
+    final ret =
+        (error: PlayerErrors.values[e], index: wasmGetI32Value(idPtr, '*'));
+    wasmFree(idPtr);
     return ret;
   }
 
   @override
   ({PlayerErrors error, List<String> names}) getFilterParamNames(
       int filterType) {
-    final paramsCountPtr = wasmModule.malloc(4); // 4 bytes for an int
-    final namesPtr = wasmModule.malloc(30 * 20); // list of 30 String with 20 chars
-    final e = wasmModule.getFilterParamNames(filterType, paramsCountPtr, namesPtr);
+    final paramsCountPtr = wasmMalloc(4); // 4 bytes for an int
+    final namesPtr = wasmMalloc(30 * 20); // list of 30 String with 20 chars
+    final e = wasmGetFilterParamNames(filterType, paramsCountPtr, namesPtr);
 
     final pNames = <String>[];
     var offsetPtr = 0;
-    for (var i = 0; i < wasmModule.getI32Value(paramsCountPtr, '*'); i++) {
-      final namePtr = wasmModule.getI32Value(namesPtr + offsetPtr, '*');
-      final name = wasmModule.utf8ToString(namePtr);
+    for (var i = 0; i < wasmGetI32Value(paramsCountPtr, '*'); i++) {
+      final namePtr = wasmGetI32Value(namesPtr + offsetPtr, '*');
+      final name = wasmUtf8ToString(namePtr);
       offsetPtr += name.length;
 
       pNames.add(name);
     }
 
     final ret = (error: PlayerErrors.values[e], names: pNames);
-    wasmModule.free(namesPtr);
-    wasmModule.free(paramsCountPtr);
+    wasmFree(namesPtr);
+    wasmFree(paramsCountPtr);
     return ret;
   }
 
   @override
   PlayerErrors addGlobalFilter(int filterType) {
-    final e = wasmModule.addGlobalFilter(filterType);
+    final e = wasmAddGlobalFilter(filterType);
     return PlayerErrors.values[e];
   }
 
   @override
   int removeGlobalFilter(int filterType) {
-    return wasmModule.removeGlobalFilter(filterType);
+    return wasmRemoveGlobalFilter(filterType);
   }
 
   @override
   int setFilterParams(int filterType, int attributeId, double value) {
-    return wasmModule.setFxParams(filterType, attributeId, value);
+    return wasmSetFxParams(filterType, attributeId, value);
   }
 
   @override
   double getFilterParams(int filterType, int attributeId) {
-    return wasmModule.getFxParams(filterType, attributeId);
+    return wasmGetFxParams(filterType, attributeId);
   }
 
   // //////////////////////////////////////
@@ -515,8 +517,8 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     bool looping = false,
     Duration loopingStartAt = Duration.zero,
   }) {
-    final handlePtr = wasmModule.malloc(4); // 4 bytes for an int
-    final result = wasmModule.play3d(
+    final handlePtr = wasmMalloc(4); // 4 bytes for an int
+    final result = wasmPlay3d(
       soundHash.hash,
       posX,
       posY,
@@ -532,22 +534,22 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     );
 
     /// "*" means unsigned int 32
-    final newHandle = wasmModule.getI32Value(handlePtr, '*');
+    final newHandle = wasmGetI32Value(handlePtr, '*');
     final ret =
         (error: PlayerErrors.values[result], newHandle: SoundHandle(newHandle));
-    wasmModule.free(handlePtr);
+    wasmFree(handlePtr);
 
     return ret;
   }
 
   @override
   void set3dSoundSpeed(double speed) {
-    return wasmModule.set3dSoundSpeed(speed);
+    return wasmSet3dSoundSpeed(speed);
   }
 
   @override
   double get3dSoundSpeed() {
-    return wasmModule.get3dSoundSpeed();
+    return wasmGet3dSoundSpeed();
   }
 
   @override
@@ -565,7 +567,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     double velocityY,
     double velocityZ,
   ) {
-    return wasmModule.set3dListenerParameters(
+    return wasmSet3dListenerParameters(
       posX,
       posY,
       posZ,
@@ -583,17 +585,17 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
 
   @override
   void set3dListenerPosition(double posX, double posY, double posZ) {
-    return wasmModule.set3dListenerPosition(posX, posY, posZ);
+    return wasmSet3dListenerPosition(posX, posY, posZ);
   }
 
   @override
   void set3dListenerAt(double atX, double atY, double atZ) {
-    return wasmModule.set3dListenerAt(atX, atY, atZ);
+    return wasmSet3dListenerAt(atX, atY, atZ);
   }
 
   @override
   void set3dListenerUp(double upX, double upY, double upZ) {
-    return wasmModule.set3dListenerUp(upX, upY, upZ);
+    return wasmSet3dListenerUp(upX, upY, upZ);
   }
 
   @override
@@ -602,7 +604,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     double velocityY,
     double velocityZ,
   ) {
-    return wasmModule.set3dListenerVelocity(velocityX, velocityY, velocityZ);
+    return wasmSet3dListenerVelocity(velocityX, velocityY, velocityZ);
   }
 
   @override
@@ -615,7 +617,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     double velocityY,
     double velocityZ,
   ) {
-    return wasmModule.set3dSourceParameters(
+    return wasmSet3dSourceParameters(
       handle.id,
       posX,
       posY,
@@ -629,7 +631,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
   @override
   void set3dSourcePosition(
       SoundHandle handle, double posX, double posY, double posZ) {
-    return wasmModule.set3dSourcePosition(handle.id, posX, posY, posZ);
+    return wasmSet3dSourcePosition(handle.id, posX, posY, posZ);
   }
 
   @override
@@ -639,7 +641,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     double velocityY,
     double velocityZ,
   ) {
-    return wasmModule.set3dSourceVelocity(handle.id, velocityX, velocityY, velocityZ);
+    return wasmSet3dSourceVelocity(handle.id, velocityX, velocityY, velocityZ);
   }
 
   @override
@@ -648,7 +650,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     double minDistance,
     double maxDistance,
   ) {
-    return wasmModule.set3dSourceMinMaxDistance(handle.id, minDistance, maxDistance);
+    return wasmSet3dSourceMinMaxDistance(handle.id, minDistance, maxDistance);
   }
 
   @override
@@ -657,7 +659,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
     int attenuationModel,
     double attenuationRolloffFactor,
   ) {
-    return wasmModule.set3dSourceAttenuation(
+    return wasmSet3dSourceAttenuation(
       handle.id,
       attenuationModel,
       attenuationRolloffFactor,
@@ -666,6 +668,6 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
 
   @override
   void set3dSourceDopplerFactor(SoundHandle handle, double dopplerFactor) {
-    return wasmModule.set3dSourceDopplerFactor(handle.id, dopplerFactor);
+    return wasmSet3dSourceDopplerFactor(handle.id, dopplerFactor);
   }
 }

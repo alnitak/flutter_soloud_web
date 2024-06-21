@@ -329,36 +329,26 @@ unsigned int Player::play(
     bool looping,
     double loopingStartAt)
 {
-    printf("CPP PLAYER PLAY1\n");
-
     auto const &s = std::find_if(
         sounds.begin(), sounds.end(),
         [&](std::shared_ptr<ActiveSound> const &f)
         { return f->soundHash == soundHash; });
 
-    printf("CPP PLAYER PLAY2\n");
     if (s == sounds.end())
         return 0;
 
     ActiveSound *sound = s->get();
-    printf("CPP PLAYER PLAY3  %p  %f  %f  %d  %d  %f\n", 
-        sound->sound.get(), 
-        volume, 
-        pan, paused, looping, loopingStartAt);
 
     SoLoud::handle newHandle = soloud.play(
         *sound->sound.get(), volume, pan, paused, 0);
-    printf("CPP PLAYER PLAY4\n");
     if (newHandle != 0)
         sound->handle.push_back(newHandle);
-    printf("CPP PLAYER PLAY5\n");
 
     if (looping)
     {
         setLoopPoint(newHandle, loopingStartAt);
         setLooping(newHandle, true);
     }
-    printf("CPP PLAYER PLAY6\n");
     return newHandle;
 }
 

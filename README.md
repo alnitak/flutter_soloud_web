@@ -33,3 +33,5 @@ Since to get audio data there is now the `AudioData` class, the following method
 - `SoLoud.setFftSmoothing()`
 - `@experimental SoLoudCapture.getCaptureAudioTexture2D()`
 - `@experimental SoLoudCapture.setCaptureFftSmoothing()`
+
+@filip the `Loader` is not compatible with web.

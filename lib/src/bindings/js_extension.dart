@@ -1,38 +1,38 @@
 import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 
-@JS()
-external $Module get wasmModule;
+// @JS()
+// external $Module get wasmModule;
 
-@JS()
-extension type $Module._(JSObject _) implements JSObject {
+// @JS()
+// extension type $Module._(JSObject _) implements JSObject {
   @JS('Module._malloc')
-  external int malloc(int bytesCount);
+  external int wasmMalloc(int bytesCount);
 
   @JS('Module._free')
-  external void free(int ptrAddress);
+  external void wasmFree(int ptrAddress);
 
   @JS('Module.getValue')
-  external int getI32Value(int ptrAddress, String type);
+  external int wasmGetI32Value(int ptrAddress, String type);
 
   @JS('Module.getValue')
-  external double getF32Value(int ptrAddress, String type);
+  external double wasmGetF32Value(int ptrAddress, String type);
 
   @JS('Module.UTF8ToString')
-  external String utf8ToString(int ptrAddress);
+  external String wasmUtf8ToString(int ptrAddress);
 
   @JS('Module.setValue')
-  external void setValue(int ptrAddress, int value, String type);
+  external void wasmSetValue(int ptrAddress, int value, String type);
 
   @JS('Module.cwrap')
-  external JSFunction cwrap(
+  external JSFunction wasmCwrap(
     JSString fName,
     JSString returnType,
     JSArray<JSString> argTypes,
   );
 
   @JS('Module.ccall')
-  external JSFunction ccall(
+  external JSFunction wasmCccall(
     JSString fName,
     JSString returnType,
     JSArray<JSString> argTypes,
@@ -40,219 +40,219 @@ extension type $Module._(JSObject _) implements JSObject {
   );
 
   @JS('Module._createWorkerInWasm')
-  external void createWorkerInWasm();
+  external void wasmCreateWorkerInWasm();
 
   @JS('Module._sendToWorker')
-  external void sendToWorker(int message, int value);
+  external void wasmSendToWorker(int message, int value);
 
   @JS('Module.worker')
   external web.Worker wasmWorker;
 
   @JS('Module._initEngine')
-  external int initEngine();
+  external int wasmInitEngine();
 
   @JS('Module._dispose')
-  external void deinit();
+  external void wasmDeinit();
 
   @JS('Module._isInited')
-  external int isInited();
+  external int wasmIsInited();
 
   @JS('Module._loadFile')
-  external int loadFile(int completeFileNamePtr, int loadIntoMem, int hashPtr);
+  external int wasmLoadFile(int completeFileNamePtr, int loadIntoMem, int hashPtr);
 
   @JS('Module._loadMem')
-  external int loadMem(
+  external int wasmLoadMem(
     int uniqueNamePtr,
     int memPtr,
     int length,
     int hashPtr,
   );
   @JS('Module._loadWaveform')
-  external int loadWaveform(
+  external int wasmLoadWaveform(
       int waveform, bool superWave, double scale, double detune, int hashPtr);
 
   @JS('Module._setWaveformScale')
-  external void setWaveformScale(int soundHash, double newScale);
+  external void wasmSetWaveformScale(int soundHash, double newScale);
 
   @JS('Module._setWaveformDetune')
-  external void setWaveformDetune(int soundHash, double newDetune);
+  external void wasmSetWaveformDetune(int soundHash, double newDetune);
 
   @JS('Module._setWaveformFreq')
-  external void setWaveformFreq(int soundHash, double newFreq);
+  external void wasmSetWaveformFreq(int soundHash, double newFreq);
 
   @JS('Module._setSuperWave')
-  external void setSuperWave(int soundHash, int superwave);
+  external void wasmSetSuperWave(int soundHash, int superwave);
 
   @JS('Module._setWaveform')
-  external void setWaveform(int soundHash, int newWaveform);
+  external void wasmSetWaveform(int soundHash, int newWaveform);
 
   @JS('Module._speechText')
-  external int speechText(int textToSpeechPtr, int handlePtr);
+  external int wasmSpeechText(int textToSpeechPtr, int handlePtr);
 
   @JS('Module._pauseSwitch')
-  external void pauseSwitch(int handle);
+  external void wasmPauseSwitch(int handle);
 
   @JS('Module._setPause')
-  external void setPause(int handle, int pause);
+  external void wasmSetPause(int handle, int pause);
 
   @JS('Module._getPause')
-  external int getPause(int handle);
+  external int wasmGetPause(int handle);
 
   @JS('Module._setRelativePlaySpeed')
-  external void setRelativePlaySpeed(int handle, double speed);
+  external void wasmSetRelativePlaySpeed(int handle, double speed);
 
   @JS('Module._getRelativePlaySpeed')
-  external double getRelativePlaySpeed(int handle);
+  external double wasmGetRelativePlaySpeed(int handle);
 
   @JS('Module._play')
-  external int play(int soundHash, double volume, double pan, bool paused,
+  external int wasmPlay(int soundHash, double volume, double pan, bool paused,
       bool looping, double loopingStartAt, int handlePtr);
 
   @JS('Module._stop')
-  external void stop(int handle);
+  external void wasmStop(int handle);
 
   @JS('Module._disposeSound')
-  external void disposeSound(int soundHash);
+  external void wasmDisposeSound(int soundHash);
 
   @JS('Module._disposeAllSound')
-  external void disposeAllSound();
+  external void wasmDisposeAllSound();
 
   @JS('Module._getLooping')
-  external int getLooping(int handle);
+  external int wasmGetLooping(int handle);
 
   @JS('Module._setLooping')
-  external void setLooping(int handle, int enable);
+  external void wasmSetLooping(int handle, int enable);
 
   @JS('Module._getLoopPoint')
-  external double getLoopPoint(int handle);
+  external double wasmGetLoopPoint(int handle);
 
   @JS('Module._setLoopPoint')
-  external void setLoopPoint(int handle, double time);
+  external void wasmSetLoopPoint(int handle, double time);
 
   @JS('Module._setVisualizationEnabled')
-  external void setVisualizationEnabled(int enabled);
+  external void wasmSetVisualizationEnabled(int enabled);
 
   @JS('Module._getVisualizationEnabled')
-  external int getVisualizationEnabled();
+  external int wasmGetVisualizationEnabled();
 
   @JS('Module._setFftSmoothing')
-  external void setFftSmoothing(double smooth);
+  external void wasmSetFftSmoothing(double smooth);
 
   @JS('Module._getAudioTexture')
-  external void getAudioTexture(int samplesPtr);
+  external void wasmGetAudioTexture(int samplesPtr);
 
   @JS('Module._getAudioTexture2D')
-  external int getAudioTexture2D(int samplesPtr);
+  external int wasmGetAudioTexture2D(int samplesPtr);
 
   @JS('Module._getCaptureAudioTexture')
-  external void getCaptureAudioTexture(int samplesPtr);
+  external void wasmGetCaptureAudioTexture(int samplesPtr);
 
   @JS('Module._getCaptureAudioTexture2D')
-  external int getCaptureAudioTexture2D(int samplesPtr);
+  external int wasmGetCaptureAudioTexture2D(int samplesPtr);
 
   @JS('Module._setCaptureFftSmoothing')
-  external int setCaptureFftSmoothing(double smooth);
+  external int wasmSetCaptureFftSmoothing(double smooth);
 
   @JS('Module._getLength')
-  external double getLength(int soundHash);
+  external double wasmGetLength(int soundHash);
 
   @JS('Module._seek')
-  external int seek(int handle, double time);
+  external int wasmSeek(int handle, double time);
 
   @JS('Module._getPosition')
-  external double getPosition(int handle);
+  external double wasmGetPosition(int handle);
 
   @JS('Module._getGlobalVolume')
-  external double getGlobalVolume();
+  external double wasmGetGlobalVolume();
 
   @JS('Module._setGlobalVolume')
-  external int setGlobalVolume(double volume);
+  external int wasmSetGlobalVolume(double volume);
 
   @JS('Module._getVolume')
-  external double getVolume(int handle);
+  external double wasmGetVolume(int handle);
 
   @JS('Module._setVolume')
-  external int setVolume(int handle, double volume);
+  external int wasmSetVolume(int handle, double volume);
 
   @JS('Module._getIsValidVoiceHandle')
-  external int getIsValidVoiceHandle(int handle);
+  external int wasmGetIsValidVoiceHandle(int handle);
 
   @JS('Module._getActiveVoiceCount')
-  external int getActiveVoiceCount();
+  external int wasmGetActiveVoiceCount();
 
   @JS('Module._countAudioSource')
-  external int countAudioSource(int soundHash);
+  external int wasmCountAudioSource(int soundHash);
 
   @JS('Module._getVoiceCount')
-  external int getVoiceCount();
+  external int wasmGetVoiceCount();
 
   @JS('Module._getProtectVoice')
-  external int getProtectVoice(int handle);
+  external int wasmGetProtectVoice(int handle);
 
   @JS('Module._setProtectVoice')
-  external void setProtectVoice(int handle, int protect);
+  external void wasmSetProtectVoice(int handle, int protect);
 
   @JS('Module._getMaxActiveVoiceCount')
-  external int getMaxActiveVoiceCount();
+  external int wasmGetMaxActiveVoiceCount();
 
   @JS('Module._setMaxActiveVoiceCount')
-  external void setMaxActiveVoiceCount(int maxVoiceCount);
+  external void wasmSetMaxActiveVoiceCount(int maxVoiceCount);
 
   @JS('Module._fadeGlobalVolume')
-  external int fadeGlobalVolume(double to, double duration);
+  external int wasmFadeGlobalVolume(double to, double duration);
 
   @JS('Module._fadeVolume')
-  external int fadeVolume(int handle, double to, double duration);
+  external int wasmFadeVolume(int handle, double to, double duration);
 
   @JS('Module._fadePan')
-  external int fadePan(int handle, double to, double duration);
+  external int wasmFadePan(int handle, double to, double duration);
 
   @JS('Module._fadeRelativePlaySpeed')
-  external int fadeRelativePlaySpeed(int handle, double to, double duration);
+  external int wasmFadeRelativePlaySpeed(int handle, double to, double duration);
 
   @JS('Module._schedulePause')
-  external int schedulePause(int handle, double duration);
+  external int wasmSchedulePause(int handle, double duration);
 
   @JS('Module._scheduleStop')
-  external int scheduleStop(int handle, double duration);
+  external int wasmScheduleStop(int handle, double duration);
 
   @JS('Module._oscillateVolume')
-  external int oscillateVolume(int handle, double from, double to, double time);
+  external int wasmOscillateVolume(int handle, double from, double to, double time);
 
   @JS('Module._oscillatePan')
-  external int oscillatePan(int handle, double from, double to, double time);
+  external int wasmOscillatePan(int handle, double from, double to, double time);
 
   @JS('Module._oscillateRelativePlaySpeed')
-  external int oscillateRelativePlaySpeed(
+  external int wasmOscillateRelativePlaySpeed(
       int handle, double from, double to, double time);
 
   @JS('Module._oscillateGlobalVolume')
-  external int oscillateGlobalVolume(double from, double to, double time);
+  external int wasmOscillateGlobalVolume(double from, double to, double time);
 
   @JS('Module._isFilterActive')
-  external int isFilterActive(int filterType, int idPtr);
+  external int wasmIsFilterActive(int filterType, int idPtr);
 
   @JS('Module._getFilterParamNames')
-  external int getFilterParamNames(
+  external int wasmGetFilterParamNames(
     int filterType,
     int paramsCountPtr,
     int namesPtr,
   );
 
   @JS('Module._addGlobalFilter')
-  external int addGlobalFilter(int filterType);
+  external int wasmAddGlobalFilter(int filterType);
 
   @JS('Module._removeGlobalFilter')
-  external int removeGlobalFilter(int filterType);
+  external int wasmRemoveGlobalFilter(int filterType);
 
   @JS('Module._setFxParams')
-  external int setFxParams(int filterType, int attributeId, double value);
+  external int wasmSetFxParams(int filterType, int attributeId, double value);
 
   @JS('Module._getFxParams')
-  external double getFxParams(int filterType, int attributeId);
+  external double wasmGetFxParams(int filterType, int attributeId);
 
   @JS('Module._play3d')
-  external int play3d(
+  external int wasmPlay3d(
     int soundHash,
     double posX,
     double posY,
@@ -268,13 +268,13 @@ extension type $Module._(JSObject _) implements JSObject {
   );
 
   @JS('Module._set3dSoundSpeed')
-  external void set3dSoundSpeed(double speed);
+  external void wasmSet3dSoundSpeed(double speed);
 
   @JS('Module._get3dSoundSpeed')
-  external double get3dSoundSpeed();
+  external double wasmGet3dSoundSpeed();
 
   @JS('Module._set3dListenerParameters')
-  external void set3dListenerParameters(
+  external void wasmSet3dListenerParameters(
     double posX,
     double posY,
     double posZ,
@@ -290,23 +290,23 @@ extension type $Module._(JSObject _) implements JSObject {
   );
 
   @JS('Module._set3dListenerPosition')
-  external void set3dListenerPosition(double posX, double posY, double posZ);
+  external void wasmSet3dListenerPosition(double posX, double posY, double posZ);
 
   @JS('Module._set3dListenerAt')
-  external void set3dListenerAt(double atX, double atY, double atZ);
+  external void wasmSet3dListenerAt(double atX, double atY, double atZ);
 
   @JS('Module._set3dListenerUp')
-  external void set3dListenerUp(double upX, double upY, double upZ);
+  external void wasmSet3dListenerUp(double upX, double upY, double upZ);
 
   @JS('Module._set3dListenerVelocity')
-  external void set3dListenerVelocity(
+  external void wasmSet3dListenerVelocity(
     double velocityX,
     double velocityY,
     double velocityZ,
   );
 
   @JS('Module._set3dSourceParameters')
-  external void set3dSourceParameters(
+  external void wasmSet3dSourceParameters(
     int handle,
     double posX,
     double posY,
@@ -317,7 +317,7 @@ extension type $Module._(JSObject _) implements JSObject {
   );
 
   @JS('Module._set3dSourcePosition')
-  external void set3dSourcePosition(
+  external void wasmSet3dSourcePosition(
     int handle,
     double posX,
     double posY,
@@ -325,7 +325,7 @@ extension type $Module._(JSObject _) implements JSObject {
   );
 
   @JS('Module._set3dSourceVelocity')
-  external void set3dSourceVelocity(
+  external void wasmSet3dSourceVelocity(
     int handle,
     double velocityX,
     double velocityY,
@@ -333,51 +333,51 @@ extension type $Module._(JSObject _) implements JSObject {
   );
 
   @JS('Module._set3dSourceMinMaxDistance')
-  external void set3dSourceMinMaxDistance(
+  external void wasmSet3dSourceMinMaxDistance(
     int handle,
     double minDistance,
     double maxDistance,
   );
 
   @JS('Module._set3dSourceAttenuation')
-  external void set3dSourceAttenuation(
+  external void wasmSet3dSourceAttenuation(
     int handle,
     int attenuationModel,
     double attenuationRolloffFactor,
   );
 
   @JS('Module._set3dSourceDopplerFactor')
-  external void set3dSourceDopplerFactor(int handle, double dopplerFactor);
+  external void wasmSet3dSourceDopplerFactor(int handle, double dopplerFactor);
 
   // ///////////////////////////
   // Capture
   // ///////////////////////////
   @JS('Module._listCaptureDevices')
-  external void listCaptureDevices(
+  external void wasmListCaptureDevices(
       int namesPtr, int isDefaultPtr, int nDevicePtr);
 
   @JS('Module._freeListCaptureDevices')
-  external void freeListCaptureDevices(
+  external void wasmFreeListCaptureDevices(
     int namesPtr,
     int isDefaultPtr,
     int nDevice,
   );
 
   @JS('Module._initCapture')
-  external int initCapture(int deviceID);
+  external int wasmInitCapture(int deviceID);
 
   @JS('Module._disposeCapture')
-  external void disposeCapture();
+  external void wasmDisposeCapture();
 
   @JS('Module._isCaptureInited')
-  external int isCaptureInited();
+  external int wasmIsCaptureInited();
 
   @JS('Module._isCaptureStarted')
-  external int isCaptureStarted();
+  external int wasmIsCaptureStarted();
 
   @JS('Module._startCapture')
-  external int startCapture();
+  external int wasmStartCapture();
 
   @JS('Module._stopCapture')
-  external int stopCapture();
-}
+  external int wasmStopCapture();
+// }
