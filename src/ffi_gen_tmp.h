@@ -23,4 +23,4 @@ struct CaptureDevice
 
 //--------------------- copy here the new functions to generate
 
-FFI_PLUGIN_EXPORT void getCaptureTexture(float *samples);
+FFI_PLUGIN_EXPORT void disposeCapture();

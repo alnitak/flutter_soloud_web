@@ -135,8 +135,20 @@ import 'package:web/web.dart' as web;
   @JS('Module._getVisualizationEnabled')
   external int wasmGetVisualizationEnabled();
 
+  @JS('Module._getWave')
+  external void wasmGetWave(int samplesPtr);
+
+  @JS('Module._getFft')
+  external void wasmGetFft(int samplesPtr);
+
   @JS('Module._setFftSmoothing')
   external void wasmSetFftSmoothing(double smooth);
+
+  @JS('Module._getCaptureFft')
+  external void wasmGetCaptureFft(int samplesPtr);
+
+  @JS('Module._getCaptureWave')
+  external void wasmGetCaptureWave(int samplesPtr);
 
   @JS('Module._getAudioTexture')
   external void wasmGetAudioTexture(int samplesPtr);

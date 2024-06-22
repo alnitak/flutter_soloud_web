@@ -29,6 +29,12 @@ abstract class FlutterCapture {
   CaptureErrors stopCapture();
 
   @mustBeOverridden
+  void getCaptureFft(AudioData fft);
+
+  @mustBeOverridden
+  void getCaptureWave(AudioData wave);
+
+  @mustBeOverridden
   void getCaptureAudioTexture(AudioData samples);
 
   @mustBeOverridden

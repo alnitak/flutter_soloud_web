@@ -25,19 +25,13 @@ class FlutterSoLoudFfi {
       : _lookup = lookup;
 
   /// --------------------- copy here the new functions to generate
-  void getCaptureTexture(
-    ffi.Pointer<ffi.Float> samples,
-  ) {
-    return _getCaptureTexture(
-      samples,
-    );
+  void disposeCapture() {
+    return _disposeCapture();
   }
 
-  late final _getCaptureTexturePtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Float>)>>(
-          'getCaptureTexture');
-  late final _getCaptureTexture =
-      _getCaptureTexturePtr.asFunction<void Function(ffi.Pointer<ffi.Float>)>();
+  late final _disposeCapturePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function()>>('disposeCapture');
+  late final _disposeCapture = _disposeCapturePtr.asFunction<void Function()>();
 }
 
 final class CaptureDevice extends ffi.Struct {

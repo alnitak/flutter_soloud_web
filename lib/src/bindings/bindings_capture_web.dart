@@ -74,6 +74,16 @@ class FlutterCaptureWeb extends FlutterCapture {
   }
 
   @override
+  void getCaptureFft(AudioData fft) {
+    return wasmGetCaptureFft(fft.ctrl.samplesPtr);
+  }
+
+  @override
+  void getCaptureWave(AudioData wave) {
+    return wasmGetCaptureWave(wave.ctrl.samplesPtr);
+  }
+
+  @override
   void getCaptureAudioTexture(AudioData samples) {
     wasmGetCaptureAudioTexture(samples.ctrl.samplesPtr);
   }

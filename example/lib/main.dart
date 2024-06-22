@@ -84,7 +84,7 @@ class _MyAppState extends State<MyApp> {
                 onPressed: () async {
                   try {
                     await SoLoud.instance.init();
-                    // SoLoudCapture.instance.initialize();
+                    SoLoudCapture.instance.init();
                     SoLoud.instance.setVisualizationEnabled(true);
                   } on Exception catch (_) {}
                 },

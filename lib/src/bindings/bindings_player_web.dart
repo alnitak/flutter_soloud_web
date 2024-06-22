@@ -284,13 +284,13 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
   }
 
   @override
-  void getFft(dynamic fft) {
-    throw UnimplementedError('[getFft] in not supported on the web platfom!');
+  void getFft(AudioData fft) {
+    wasmGetWave(fft.ctrl.samplesPtr);
   }
 
   @override
-  void getWave(dynamic wave) {
-    throw UnimplementedError('[getWave] in not supported on the web platfom!');
+  void getWave(AudioData wave) {
+    wasmGetWave(wave.ctrl.samplesPtr);
   }
 
   @override

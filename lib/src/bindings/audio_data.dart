@@ -9,6 +9,8 @@ import 'package:flutter_soloud/src/bindings/audio_data_ffi.dart'
     if (dart.library.html) 'audio_data_web.dart';
 
 /// Enum to tell [AudioData] from where to get audio data.
+/// Every time [AudioData.updateSamples] is called, the audio data will
+/// be acquired by the respective device.
 enum GetSamplesFrom {
   /// Take data from the player.
   player,
@@ -18,17 +20,25 @@ enum GetSamplesFrom {
 }
 
 /// The way the audio data should be acquired.
+/// 
+/// Every time [AudioData.updateSamples] is called is possible to query the
+/// acquired new audio data using respectively [AudioData.getLinear],
+/// [AudioData.getTexture] and [AudioData.getWave].
 enum GetSamplesKind {
-  // If adding something here check [AudioData.isEmpty].
-
   /// Get data in a linear manner: the first 256 floats are audio FFI values,
   /// the other 256 are audio wave samples.
+  /// To get audio data use [AudioData.getLinear].
   linear,
 
   /// Get data in a 2D way. The resulting data will be a matrix of 256
-  /// [linear] data. Each time the [AudioData.updateSamples] method is called,
+  /// [linear] rows. Each time the [AudioData.updateSamples] method is called,
   /// the last row is discarded and the new one will be the first.
+  /// To get audio data use [AudioData.getTexture].
   texture,
+
+  /// Get the 256 float of wave audio data.
+  /// To get audio data use [AudioData.getWave].
+  wave,
 }
 
 /// Class to manage audio samples.
@@ -37,18 +47,20 @@ enum GetSamplesKind {
 /// achieve this by calling `SoLoud.instance.setVisualizationEnabled(true);`.
 ///
 /// Audio samples can be get from the player or from the microphone, and
-/// in a texture matrix (2D) or a linear way (1D).
+/// in a texture matrix or a linear array way.
 ///
 /// IMPORTANT: remember to call [dispose] method when there is no more need
 /// to acquire audio.
 ///
-/// After calling [updateSamples] is possible to call [get1D] or [get2D]
+/// After calling [updateSamples] is possible to call [getLinear] or [getTexture]
 /// and have back the audio samples. For example using a "Ticker" in a Widget
 /// that needs the audio data to be displayed:
 /// ```
 /// ...
 /// late final Ticker ticker;
 /// late final AudioData audioData;
+/// late final double waveData;
+/// late final double fftData;
 ///
 /// @override
 /// void initState() {
@@ -78,13 +90,11 @@ enum GetSamplesKind {
 /// ```
 /// Then in your "build" method, you can read the audio data:
 /// ```
-/// late final double waveData;
-/// late final double fftData;
 /// try {
-///   /// Use [get2D] if you have inizialized [AudioData]
+///   /// Use [getTexture] if you have inizialized [AudioData]
 ///   /// with [GetSamplesKind.texture]
-///   ffiData = audioData.get1D(i);
-///   waveData = audioData.get1D(i+256);
+///   ffiData = audioData.getLinear(i);
+///   waveData = audioData.getLinear(i+256);
 /// } on Exception {
 ///   ffiData = 0;
 ///   waveData = 0;
@@ -96,7 +106,6 @@ enum GetSamplesKind {
 ///
 ///
 // TODO(): make AudioData singleton?
-//        add `getWave` and `getFFT`
 //     add capture exceptions
 //    fix worker.dart
 @experimental
@@ -106,27 +115,60 @@ class AudioData {
     this._getSamplesFrom,
     this._getSamplesKind,
   ) : ctrl = AudioDataCtrl() {
-    if (_getSamplesFrom == GetSamplesFrom.player) {
-      if (_getSamplesKind == GetSamplesKind.texture) {
-        _updateCallback = ctrl.texture2DCallback;
-        _samples2D = ctrl.allocSample2D();
-      } else {
-        _updateCallback = ctrl.textureCallback;
-        _samples1D = ctrl.allocSample1D();
-      }
-    } else {
-      if (_getSamplesKind == GetSamplesKind.texture) {
-        _updateCallback = ctrl.captureTexture2DCallback;
-        _samples2D = ctrl.allocSample2D();
-      } else {
-        _updateCallback = ctrl.captureAudioTextureCallback;
-        _samples1D = ctrl.allocSample1D();
-      }
+    // if (_getSamplesFrom == GetSamplesFrom.player) {
+    //   if (_getSamplesKind == GetSamplesKind.texture) {
+    //     _updateCallback = ctrl.texture2DCallback;
+    //     _samples2D = ctrl.allocSample2D();
+    //   } else {
+    //     _updateCallback = ctrl.textureCallback;
+    //     _samples1D = ctrl.allocSample1D();
+    //   }
+    // } else {
+    //   if (_getSamplesKind == GetSamplesKind.texture) {
+    //     _updateCallback = ctrl.captureTexture2DCallback;
+    //     _samples2D = ctrl.allocSample2D();
+    //   } else {
+    //     _updateCallback = ctrl.captureAudioTextureCallback;
+    //     _samples1D = ctrl.allocSample1D();
+    //   }
+    // }
+    switch (_getSamplesFrom) {
+      case GetSamplesFrom.player:
+        switch (_getSamplesKind) {
+          case GetSamplesKind.linear:
+            _updateCallback = ctrl.textureCallback;
+            _samples1D = ctrl.allocSample1D();
+          case GetSamplesKind.texture:
+            _updateCallback = ctrl.texture2DCallback;
+            _samples2D = ctrl.allocSample2D();
+          case GetSamplesKind.wave:
+            _updateCallback = ctrl.waveCallback;
+            _samplesWave = ctrl.allocSampleWave();
+        }
+      case GetSamplesFrom.microphone:
+        switch (_getSamplesKind) {
+          case GetSamplesKind.linear:
+            _updateCallback = ctrl.captureAudioTextureCallback;
+            _samples1D = ctrl.allocSample1D();
+          case GetSamplesKind.texture:
+            _updateCallback = ctrl.captureTexture2DCallback;
+            _samples2D = ctrl.allocSample2D();
+          case GetSamplesKind.wave:
+            _updateCallback = ctrl.captureWaveCallback;
+            _samplesWave = ctrl.allocSampleWave();
+        }
     }
   }
 
   @internal
   final AudioDataCtrl ctrl;
+
+  /// Where the FFT or wave data is stored.
+  late final SampleFormat2D _samplesWave;
+
+  /// The getter for [_samplesWave].
+  @internal
+  SampleFormat2D get samplesWave => _samplesWave;
 
   /// Where the audio 2D data is stored.
   late final SampleFormat2D _samples2D;
@@ -155,7 +197,7 @@ class AudioData {
   /// do the [GetSamplesFrom] and [GetSamplesKind] checks on every calls.
   late void Function(AudioData) _updateCallback;
 
-  /// Update the content of samples memory to be get with [get1D] or [get2D].
+  /// Update the content of samples memory to be get with [getLinear] or [getTexture].
   ///
   /// Throws [SoLoudNotInitializedException] if the engine is not initialized.
   /// Throws [SoLoudVisualizationNotEnabledException] if the visualization
@@ -181,35 +223,46 @@ class AudioData {
     ctrl.dispose(_samples1D, _samples2D);
   }
 
+  double getWave(SampleWave offset) {
+    if (_getSamplesKind != GetSamplesKind.wave) return 0;
+
+    if (!SoLoudController().soLoudFFI.getVisualizationEnabled()) {
+      throw const SoLoudVisualizationNotEnabledException();
+    }
+    return ctrl.getWave(_samplesWave, offset);
+  }
+
   /// Get the audio data at offset [offset].
   /// Use this method to get data when using [GetSamplesKind.linear].
   /// The first 256 float represents FFT data, the other 256 are wave data.
-  double get1D(SampleOffset offset) {
+  double getLinear(SampleLinear offset) {
     if (_getSamplesKind != GetSamplesKind.linear) return 0;
 
     if (!SoLoudController().soLoudFFI.getVisualizationEnabled()) {
       throw const SoLoudVisualizationNotEnabledException();
     }
-    return ctrl.get1D(_samples1D, offset.value);
+    return ctrl.getLinear(_samples1D, offset);
   }
 
   /// Get the audio data at row [row] and column [column].
   /// Use this method to get data when using [GetSamplesKind.texture].
-  /// This matrix represents 256 rows alike the [get1D] manages when
+  /// This matrix represents 256 rows alike the [getLinear] manages when
   /// using [GetSamplesKind.linear].
   /// Each time the [AudioData.updateSamples] method is called,
   /// the last row is discarded and the new one will be the first.
-  double get2D(SampleRow row, SampleColumn column) {
+  double getTexture(SampleRow row, SampleColumn column) {
     if (_getSamplesKind != GetSamplesKind.texture) return 0;
 
     if (!SoLoudController().soLoudFFI.getVisualizationEnabled()) {
       throw const SoLoudVisualizationNotEnabledException();
     }
-    return ctrl.get2D(_samples2D, row.value, column.value);
+    return ctrl.getTexture(_samples2D, row, column);
   }
 
   // Wether or not the current used data is empty.
   bool get isEmpty => _getSamplesKind == GetSamplesKind.texture
-      ? ctrl.isEmpty2D(_samples2D)
-      : ctrl.isEmpty1D(_samples1D);
+      ? ctrl.isEmptyTexture(_samples2D)
+      : _getSamplesKind == GetSamplesKind.linear
+          ? ctrl.isEmptyLinear(_samples1D)
+          : ctrl.isEmptyTexture(_samplesWave); // GetSamplesKind.wave
 }

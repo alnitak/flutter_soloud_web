@@ -22,7 +22,6 @@ class BarsState extends State<Bars> with SingleTickerProviderStateMixin {
   final AudioData audioData = AudioData(
     GetSamplesFrom.player,
     GetSamplesKind.linear,
-    // GetSamplesKind.texture,
   );
   @override
   void initState() {

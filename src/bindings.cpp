@@ -558,24 +558,22 @@ extern "C"
 
     /// Returns valid data only if VisualizationEnabled is true
     ///
-    /// [fft]
     /// Return a 256 float array containing FFT data.
-    FFI_PLUGIN_EXPORT void getFft(float *fft)
+    FFI_PLUGIN_EXPORT void getFft(float **fft)
     {
         if (player.get() == nullptr || !player.get()->isInited())
             return;
-        fft = player.get()->calcFFT();
+        *fft = player.get()->calcFFT();
     }
 
     /// Returns valid data only if VisualizationEnabled is true
     ///
-    /// fft
     /// Return a 256 float array containing wave data.
-    FFI_PLUGIN_EXPORT void getWave(float *wave)
+    FFI_PLUGIN_EXPORT void getWave(float **wave)
     {
         if (player.get() == nullptr || !player.get()->isInited())
             return;
-        wave = player.get()->getWave();
+        *wave = player.get()->getWave();
     }
 
     /// Smooth FFT data.

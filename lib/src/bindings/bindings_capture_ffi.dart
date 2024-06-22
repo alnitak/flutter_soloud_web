@@ -148,6 +148,30 @@ class FlutterCaptureFfi extends FlutterCapture {
   late final _stopCapture = _stopCapturePtr.asFunction<int Function()>();
 
   @override
+  void getCaptureFft(AudioData fft) {
+    return _getCaptureFft(fft.samplesWave);
+  }
+
+  late final _getCaptureFftPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Pointer<ffi.Pointer<ffi.Float>>)>>('getCaptureFft');
+  late final _getCaptureFft = _getCaptureFftPtr
+      .asFunction<void Function(ffi.Pointer<ffi.Pointer<ffi.Float>>)>();
+
+  @override
+  void getCaptureWave(AudioData wave) {
+    return _getCaptureWave(wave.samplesWave);
+  }
+
+  late final _getCaptureWavePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Pointer<ffi.Pointer<ffi.Float>>)>>('getCaptureWave');
+  late final _getCaptureWave = _getCaptureWavePtr
+      .asFunction<void Function(ffi.Pointer<ffi.Pointer<ffi.Float>>)>();
+
+  @override
   void getCaptureAudioTexture(AudioData samples) {
     return _getCaptureTexture(samples.samples1D);
   }

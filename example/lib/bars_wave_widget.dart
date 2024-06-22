@@ -58,8 +58,7 @@ class WavePainter extends CustomPainter {
     for (var i = 0; i < 256; i++) {
       late final double barHeight;
       try {
-        // barHeight = size.height * audioData.get2D(SampleRow(0), SampleColumn(i+256));
-        barHeight = size.height * audioData.get1D(SampleOffset(i+256));
+        barHeight = size.height * audioData.getLinear(SampleLinear(i+256));
       } on Exception {
         barHeight = 0;
       }

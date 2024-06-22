@@ -5,29 +5,34 @@ import 'package:flutter_soloud/src/bindings/soloud_controller.dart';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/soloud.dart';
 import 'package:meta/meta.dart';
+import 'package:flutter_soloud/src/bindings/audio_data_extensions.dart';
 
 typedef SampleFormat2D = Float32List;
 typedef SampleFormat1D = Float32List;
 
-@experimental
+@internal
+@immutable
 class AudioDataCtrl {
   late final int _samplesPtr;
   int get samplesPtr => _samplesPtr;
 
-  late void Function(AudioData) texture2DCallback;
+  final void Function(AudioData) waveCallback =
+      SoLoudController().soLoudFFI.getWave;
 
-  late void Function(AudioData) textureCallback;
+  final void Function(AudioData) texture2DCallback =
+      SoLoudController().soLoudFFI.getAudioTexture2D;
 
-  late void Function(AudioData) captureTexture2DCallback;
+  final void Function(AudioData) textureCallback =
+      SoLoudController().soLoudFFI.getAudioTexture;
 
-  late void Function(AudioData) captureAudioTextureCallback;
+  final void Function(AudioData) captureWaveCallback =
+      SoLoudController().captureFFI.getCaptureWave;
 
-  AudioDataCtrl() {
-    texture2DCallback = getAudioTexture2D;
-    textureCallback = getAudioTexture;
-    captureTexture2DCallback = getCaptureAudioTexture2D;
-    captureAudioTextureCallback = getCaptureAudioTexture;
-  }
+  final CaptureErrors Function(AudioData) captureTexture2DCallback =
+      SoLoudController().captureFFI.getCaptureAudioTexture2D;
+
+  final void Function(AudioData) captureAudioTextureCallback =
+      SoLoudController().captureFFI.getCaptureAudioTexture;
 
   SampleFormat2D allocSample2D() {
     _samplesPtr = wasmMalloc(512 * 256 * 4);
@@ -39,33 +44,31 @@ class AudioDataCtrl {
     return Float32List(512);
   }
 
-  PlayerErrors getAudioTexture2D(AudioData samples) =>
-      SoLoudController().soLoudFFI.getAudioTexture2D(samples);
-
-  void getAudioTexture(AudioData samples) =>
-      SoLoudController().soLoudFFI.getAudioTexture(samples);
-
-  CaptureErrors getCaptureAudioTexture2D(AudioData samples) =>
-      SoLoudController().captureFFI.getCaptureAudioTexture2D(samples);
-
-  void getCaptureAudioTexture(AudioData samples) =>
-      SoLoudController().captureFFI.getCaptureAudioTexture(samples);
+  SampleFormat1D allocSampleWave() {
+    _samplesPtr = wasmMalloc(256 * 4);
+    return Float32List(256);
+  }
 
   void dispose(SampleFormat1D s1D, SampleFormat2D s2D) {
     wasmFree(_samplesPtr);
   }
 
-  double get1D(SampleFormat1D s1D, int offset) {
-    final data = wasmGetF32Value(_samplesPtr + offset * 4, 'float');
+  double getWave(SampleFormat2D s2D, SampleWave offset) {
+    final samplePtr = wasmGetI32Value(_samplesPtr, '*');
+    return wasmGetF32Value(samplePtr + offset.value * 4, 'float');
+  }
+
+  double getLinear(SampleFormat1D s1D, SampleLinear offset) {
+    final data = wasmGetF32Value(_samplesPtr + offset.value * 4, 'float');
     return data;
   }
 
-  double get2D(SampleFormat2D s2D, int row, int column) {
-    final rowPtr = wasmGetI32Value(_samplesPtr + row * 4, '*');
-    return wasmGetF32Value(rowPtr + column * 4, 'float');
+  double getTexture(SampleFormat2D s2D, SampleRow row, SampleColumn column) {
+    final rowPtr = wasmGetI32Value(_samplesPtr + row.value * 4, '*');
+    return wasmGetF32Value(rowPtr + column.value * 4, 'float');
   }
 
-  bool isEmpty1D(SampleFormat1D s1D) => s1D.isEmpty;
+  bool isEmptyLinear(SampleFormat1D s1D) => s1D.isEmpty;
 
-  bool isEmpty2D(SampleFormat1D s2D) => s2D.isEmpty;
+  bool isEmptyTexture(SampleFormat1D s2D) => s2D.isEmpty;
 }

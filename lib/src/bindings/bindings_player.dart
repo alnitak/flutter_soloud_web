@@ -291,14 +291,14 @@ abstract class FlutterSoLoud {
   /// [fft] on all platforms web excluded, the [fft] type is `Pointer<Float>`.
   /// Return a 256 float array int the [fft] pointer containing FFT data.
   @mustBeOverridden
-  void getFft(dynamic fft);
+  void getFft(AudioData fft);
 
   /// Returns valid data only if VisualizationEnabled is true
   ///
   /// [wave] on all platforms web excluded, the [wave] type is `Pointer<Float>`.
   /// Return a 256 float array int the [wave] pointer containing audio data.
   @mustBeOverridden
-  void getWave(dynamic wave);
+  void getWave(AudioData wave);
 
   /// Smooth FFT data.
   /// Not yet supported on the web.

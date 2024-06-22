@@ -541,28 +541,26 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
       _getVisualizationEnabledPtr.asFunction<int Function()>();
 
   @override
-  void getFft(dynamic fft) {
-    return _getFft(fft as ffi.Pointer<ffi.Float>);
+  void getFft(AudioData fft) {
+    return _getFft(fft.samplesWave);
   }
 
-  late final _getFftPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Float>)>>(
-    'getFft',
-  );
-  late final _getFft =
-      _getFftPtr.asFunction<void Function(ffi.Pointer<ffi.Float>)>();
+  late final _getFftPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<ffi.Pointer<ffi.Float>>)>>('getFft');
+  late final _getFft = _getFftPtr
+      .asFunction<void Function(ffi.Pointer<ffi.Pointer<ffi.Float>>)>();
 
   @override
-  void getWave(dynamic wave) {
-    return _getWave(wave as ffi.Pointer<ffi.Float>);
+  void getWave(AudioData wave) {
+    return _getWave(wave.samplesWave);
   }
 
-  late final _getWavePtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Float>)>>(
-    'getWave',
-  );
-  late final _getWave =
-      _getWavePtr.asFunction<void Function(ffi.Pointer<ffi.Float>)>();
+  late final _getWavePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<ffi.Pointer<ffi.Float>>)>>('getWave');
+  late final _getWave = _getWavePtr
+      .asFunction<void Function(ffi.Pointer<ffi.Pointer<ffi.Float>>)>();
 
   @override
   void setFftSmoothing(double smooth) {

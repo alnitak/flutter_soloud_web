@@ -4626,6 +4626,10 @@ var _startCapture = Module["_startCapture"] = createExportWrapper("startCapture"
 
 var _stopCapture = Module["_stopCapture"] = createExportWrapper("stopCapture");
 
+var _getCaptureFft = Module["_getCaptureFft"] = createExportWrapper("getCaptureFft");
+
+var _getCaptureWave = Module["_getCaptureWave"] = createExportWrapper("getCaptureWave");
+
 var _getCaptureTexture = Module["_getCaptureTexture"] = createExportWrapper("getCaptureTexture");
 
 var _getCaptureAudioTexture2D = Module["_getCaptureAudioTexture2D"] = createExportWrapper("getCaptureAudioTexture2D");

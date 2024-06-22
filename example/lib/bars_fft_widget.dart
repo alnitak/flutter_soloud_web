@@ -72,8 +72,7 @@ class FftPainter extends CustomPainter {
     for (var i = minFreq; i <= maxFreq; i++) {
       late final double barHeight;
       try {
-        barHeight = size.height * audioData.get1D(SampleOffset(i));
-        // barHeight = size.height * audioData.get2D(SampleRow(0), SampleColumn(i));
+        barHeight = size.height * audioData.getLinear(SampleLinear(i));
       } on Exception {
         barHeight = 0;
       }
