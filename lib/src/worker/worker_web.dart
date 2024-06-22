@@ -4,8 +4,6 @@ import 'dart:js_interop_unsafe';
 import 'dart:js_util';
 import 'dart:convert' show jsonDecode, jsonEncode;
 
-import 'worker.dart' as base;
-import 'dart:html' as html;
 import 'package:web/web.dart' as web;
 
 // Masked type: ServiceWorkerGlobalScope
@@ -31,7 +29,7 @@ Stream<T> callbackToStream<J, T>(
   return controller.stream;
 }
 
-class Worker implements base.Worker {
+class Worker  {
   late StreamController<dynamic> _outputController;
 
   Worker({dynamic args}) {
@@ -41,16 +39,14 @@ class Worker implements base.Worker {
     });
   }
 
-  @override
   Stream onReceive() => _outputController.stream;
 
-  @override
   void sendMessage(dynamic message) {
     jsSendMessage(message);
   }
 }
 
-class WorkerController implements base.WorkerController {
+class WorkerController {
   web.Worker? _worker;
   StreamController<dynamic>? _outputController;
 
@@ -68,12 +64,6 @@ class WorkerController implements base.WorkerController {
     return controller;
   }
 
-  @override
-  Future waitInitialized() {
-    throw UnimplementedError();
-  }
-
-  @override
   void sendMessage(dynamic message) {
     print('******** sendMessage()1: $message');
     switch (message) {
@@ -96,12 +86,10 @@ class WorkerController implements base.WorkerController {
     }
   }
 
-  @override
   Stream<dynamic> onReceive() {
     return _outputController!.stream;
   }
 
-  @override
   void kill() {
     _worker?.terminate();
   }
@@ -117,26 +105,26 @@ class WorkerController implements base.WorkerController {
   //   });
   //   return object;
   // }
-}
 
-// Map jsObjectToMap(JSAny jsObject) {
-//   final Map result = {};
-//   final List keys = _objectKeys(jsObject);
-//   for (final dynamic key in keys) {
-//     final JSAny value = getProperty(jsObject, key);
-//     List nestedKeys = [];
-//     if (value is JSArray) {
-//       nestedKeys = objectKeys(value);
-//     }
-//     if (nestedKeys.isNotEmpty) {
-//       //nested property
-//       result[key] = jsObjectToMap(value);
-//     } else {
-//       result[key] = value;
-//     }
-//   }
-//   return result;
-// }
+  // Map jsObjectToMap(JSAny jsObject) {
+  //   final Map result = {};
+  //   final List keys = _objectKeys(jsObject);
+  //   for (final dynamic key in keys) {
+  //     final JSAny value = getProperty(jsObject, key);
+  //     List nestedKeys = [];
+  //     if (value is JSArray) {
+  //       nestedKeys = objectKeys(value);
+  //     }
+  //     if (nestedKeys.isNotEmpty) {
+  //       //nested property
+  //       result[key] = jsObjectToMap(value);
+  //     } else {
+  //       result[key] = value;
+  //     }
+  //   }
+  //   return result;
+  // }
+}
 
 // JsArray<JSString> objectKeys(JSAny jsObject) {
 //   return _objectKeys(jsObject);

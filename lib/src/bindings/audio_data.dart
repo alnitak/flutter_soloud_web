@@ -1,8 +1,6 @@
 import 'package:flutter_soloud/src/bindings/soloud_controller.dart';
 import 'package:flutter_soloud/src/exceptions/exceptions.dart';
-import 'package:flutter_soloud/src/soloud.dart';
 import 'package:flutter_soloud/src/bindings/audio_data_extensions.dart';
-import 'package:flutter_soloud/src/soloud_capture.dart';
 import 'package:meta/meta.dart';
 
 import 'package:flutter_soloud/src/bindings/audio_data_ffi.dart'
@@ -208,7 +206,7 @@ class AudioData {
   /// [GitHub](https://github.com/alnitak/flutter_soloud/issues) providing
   /// a simple working example.
   void updateSamples() {
-    if (!SoLoud.instance.isInitialized) {
+    if (!SoLoudController().soLoudFFI.isInited()) {
       throw const SoLoudNotInitializedException();
     }
     if (!SoLoudController().soLoudFFI.getVisualizationEnabled()) {
