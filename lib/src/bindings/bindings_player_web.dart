@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:flutter_soloud/src/bindings/audio_data.dart';
+import 'package:flutter_soloud/src/bindings/audio_data_web.dart';
 import 'package:flutter_soloud/src/bindings/bindings_player.dart';
 import 'package:flutter_soloud/src/bindings/js_extension.dart';
 
@@ -16,17 +16,6 @@ import 'package:flutter_soloud/src/sound_handle.dart';
 ///
 /// Call Dart method from JS in Flutter Web
 /// https://stackoverflow.com/questions/65423861/call-dart-method-from-js-in-flutter-web
-
-/// These exports should take place of "bindings_player_ffi.dart" and referenced
-/// into SoLoudController taking the place of "soLoudFFI".
-/// SoLoudController should be an `abstract` class which will conditional
-/// import the appropriate bindings: the current SoLoudController for all
-/// but web, and this for web.
-///
-/// AudioIsolate should use an abstract class that implements Isolate, SendPort,
-/// ReceivePort, Isolate.spawn, Isolate.kill logic and the same
-/// functionalities for a web worker.
-///
 
 /// JS/WASM bindings to SoLoud
 class FlutterSoLoudWeb extends FlutterSoLoud {
@@ -46,7 +35,7 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
   /// This is the function called by "web/worker.dart" compiled
   /// to "web/worker.dart.js".
   void voiceCallbackFromJs(int handle) {
-    print('EUREKAAAAAAAAAAA  DART void voiceCallbackFromJs()  $handle');
+    print('EUREKAAAAAAAAAAA  BBBBBBBBBBBB DART void voiceCallbackFromJs()  $handle');
     voiceEndedEventController.add(handle);
   }
 
@@ -284,13 +273,13 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
   }
 
   @override
-  void getFft(AudioData fft) {
-    wasmGetWave(fft.ctrl.samplesPtr);
+  void getFft(dynamic fft) {
+    wasmGetFft((fft as AudioDataCtrl).samplesPtr);
   }
 
   @override
-  void getWave(AudioData wave) {
-    wasmGetWave(wave.ctrl.samplesPtr);
+  void getWave(dynamic wave) {
+    wasmGetWave((wave as AudioDataCtrl).samplesPtr);
   }
 
   @override
@@ -299,13 +288,13 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
   }
 
   @override
-  void getAudioTexture(AudioData samples) {
-    wasmGetAudioTexture(samples.ctrl.samplesPtr);
+  void getAudioTexture(dynamic samples) {
+    wasmGetAudioTexture((samples as AudioDataCtrl).samplesPtr);
   }
 
   @override
-  PlayerErrors getAudioTexture2D(AudioData samples) {
-    final e = wasmGetAudioTexture2D(samples.ctrl.samplesPtr);
+  PlayerErrors getAudioTexture2D(dynamic samples) {
+    final e = wasmGetAudioTexture2D((samples as AudioDataCtrl).samplesPtr);
     return PlayerErrors.values[e];
   }
 

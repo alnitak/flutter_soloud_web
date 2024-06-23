@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_soloud/src/bindings/audio_data.dart';
 import 'package:flutter_soloud/src/bindings/js_extension.dart';
 import 'package:flutter_soloud/src/bindings/soloud_controller.dart';
 import 'package:flutter_soloud/src/enums.dart';
@@ -15,59 +14,82 @@ class AudioDataCtrl {
   late final int _samplesPtr;
   int get samplesPtr => _samplesPtr;
 
-  final void Function(AudioData) waveCallback =
+  /// Where the FFT or wave data is stored.
+  late final SampleFormat2D _samplesWave;
+
+  /// The getter for [_samplesWave].
+  @internal
+  SampleFormat2D get samplesWave => _samplesWave;
+
+  /// Where the audio 2D data is stored.
+  late final SampleFormat2D _samples2D;
+
+  /// The getter for [_samples2D].
+  @internal
+  SampleFormat2D get samples2D => _samples2D;
+
+  /// Where the audio 1D data is stored.
+  late final SampleFormat1D _samples1D;
+
+  /// The getter for [_samples1D].
+  @internal
+  SampleFormat1D get samples1D => _samples1D;
+
+  final void Function(AudioDataCtrl) waveCallback =
       SoLoudController().soLoudFFI.getWave;
 
-  final void Function(AudioData) texture2DCallback =
+  final void Function(AudioDataCtrl) texture2DCallback =
       SoLoudController().soLoudFFI.getAudioTexture2D;
 
-  final void Function(AudioData) textureCallback =
+  final void Function(AudioDataCtrl) textureCallback =
       SoLoudController().soLoudFFI.getAudioTexture;
 
-  final void Function(AudioData) captureWaveCallback =
+  final void Function(AudioDataCtrl) captureWaveCallback =
       SoLoudController().captureFFI.getCaptureWave;
 
-  final CaptureErrors Function(AudioData) captureTexture2DCallback =
+  final CaptureErrors Function(AudioDataCtrl) captureTexture2DCallback =
       SoLoudController().captureFFI.getCaptureAudioTexture2D;
 
-  final void Function(AudioData) captureAudioTextureCallback =
+  final void Function(AudioDataCtrl) captureAudioTextureCallback =
       SoLoudController().captureFFI.getCaptureAudioTexture;
 
-  SampleFormat2D allocSample2D() {
+  void allocSample2D() {
     _samplesPtr = wasmMalloc(512 * 256 * 4);
-    return Float32List(512 * 256);
+    _samples2D = Float32List(512 * 256);
   }
 
-  SampleFormat1D allocSample1D() {
+  void allocSample1D() {
     _samplesPtr = wasmMalloc(512 * 4);
-    return Float32List(512);
+    _samples1D = Float32List(512);
   }
 
-  SampleFormat1D allocSampleWave() {
+  void allocSampleWave() {
     _samplesPtr = wasmMalloc(256 * 4);
-    return Float32List(256);
+    _samplesWave = Float32List(256);
   }
 
-  void dispose(SampleFormat1D s1D, SampleFormat2D s2D) {
+  void dispose() {
     wasmFree(_samplesPtr);
   }
 
-  double getWave(SampleFormat2D s2D, SampleWave offset) {
+  double getWave(SampleWave offset) {
     final samplePtr = wasmGetI32Value(_samplesPtr, '*');
     return wasmGetF32Value(samplePtr + offset.value * 4, 'float');
   }
 
-  double getLinear(SampleFormat1D s1D, SampleLinear offset) {
+  double getLinear(SampleLinear offset) {
     final data = wasmGetF32Value(_samplesPtr + offset.value * 4, 'float');
     return data;
   }
 
-  double getTexture(SampleFormat2D s2D, SampleRow row, SampleColumn column) {
+  double getTexture(SampleRow row, SampleColumn column) {
     final rowPtr = wasmGetI32Value(_samplesPtr + row.value * 4, '*');
     return wasmGetF32Value(rowPtr + column.value * 4, 'float');
   }
 
-  bool isEmptyLinear(SampleFormat1D s1D) => s1D.isEmpty;
+  bool isEmptyLinear() => _samples1D.isEmpty;
 
-  bool isEmptyTexture(SampleFormat1D s2D) => s2D.isEmpty;
+  bool isEmptyTexture() => _samples2D.isEmpty;
+
+  bool isEmptyWave() => _samplesWave.isEmpty;
 }

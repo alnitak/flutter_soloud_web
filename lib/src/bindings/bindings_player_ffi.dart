@@ -8,8 +8,8 @@ import 'dart:ffi' as ffi;
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter_soloud/src/bindings/audio_data_ffi.dart';
 import 'package:flutter_soloud/src/bindings/bindings_player.dart';
-import 'package:flutter_soloud/src/bindings/audio_data.dart';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/sound_handle.dart';
 import 'package:flutter_soloud/src/sound_hash.dart';
@@ -541,8 +541,8 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
       _getVisualizationEnabledPtr.asFunction<int Function()>();
 
   @override
-  void getFft(AudioData fft) {
-    return _getFft(fft.samplesWave);
+  void getFft(dynamic fft) {
+    return _getFft((fft as AudioDataCtrl).samplesWave);
   }
 
   late final _getFftPtr = _lookup<
@@ -552,8 +552,8 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
       .asFunction<void Function(ffi.Pointer<ffi.Pointer<ffi.Float>>)>();
 
   @override
-  void getWave(AudioData wave) {
-    return _getWave(wave.samplesWave);
+  void getWave(dynamic wave) {
+    return _getWave((wave as AudioDataCtrl).samplesWave);
   }
 
   late final _getWavePtr = _lookup<
@@ -575,8 +575,8 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
       _setFftSmoothingPtr.asFunction<void Function(double)>();
 
   @override
-  void getAudioTexture(AudioData samples) {
-    return _getAudioTexture(samples.samples1D);
+  void getAudioTexture(dynamic samples) {
+    return _getAudioTexture((samples as AudioDataCtrl).samples1D);
   }
 
   late final _getAudioTexturePtr =
@@ -587,11 +587,12 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
       _getAudioTexturePtr.asFunction<void Function(ffi.Pointer<ffi.Float>)>();
 
   @override
-  PlayerErrors getAudioTexture2D(AudioData samples) {
-    if (samples.isEmpty) {
+  PlayerErrors getAudioTexture2D(dynamic samples) {
+    final s = samples as AudioDataCtrl;
+    if (s.isEmptyTexture()) {
       return PlayerErrors.nullPointer;
     }
-    final ret = _getAudioTexture2D(samples.samples2D);
+    final ret = _getAudioTexture2D(s.samples2D);
     return PlayerErrors.values[ret];
   }
 

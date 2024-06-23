@@ -14,6 +14,7 @@ void doJob() async {
       try {
         final parseMap = jsonDecode(data);
         if (parseMap['message'] == 'voiceEndedCallback') {
+          ******** provare a usare una gloab func
           FlutterSoLoudWeb().voiceCallbackFromJs(parseMap["value"]);
         }
       } catch (e) {

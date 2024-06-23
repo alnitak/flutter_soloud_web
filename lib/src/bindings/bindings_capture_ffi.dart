@@ -1,8 +1,8 @@
 import 'dart:ffi' as ffi;
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter_soloud/src/bindings/audio_data_ffi.dart';
 import 'package:flutter_soloud/src/bindings/bindings_capture.dart';
-import 'package:flutter_soloud/src/bindings/audio_data.dart';
 import 'package:flutter_soloud/src/enums.dart';
 
 /// CaptureDevice struct exposed in C
@@ -148,8 +148,8 @@ class FlutterCaptureFfi extends FlutterCapture {
   late final _stopCapture = _stopCapturePtr.asFunction<int Function()>();
 
   @override
-  void getCaptureFft(AudioData fft) {
-    return _getCaptureFft(fft.samplesWave);
+  void getCaptureFft(dynamic fft) {
+    return _getCaptureFft((fft as AudioDataCtrl).samplesWave);
   }
 
   late final _getCaptureFftPtr = _lookup<
@@ -160,8 +160,8 @@ class FlutterCaptureFfi extends FlutterCapture {
       .asFunction<void Function(ffi.Pointer<ffi.Pointer<ffi.Float>>)>();
 
   @override
-  void getCaptureWave(AudioData wave) {
-    return _getCaptureWave(wave.samplesWave);
+  void getCaptureWave(dynamic wave) {
+    return _getCaptureWave((wave as AudioDataCtrl).samplesWave);
   }
 
   late final _getCaptureWavePtr = _lookup<
@@ -172,8 +172,8 @@ class FlutterCaptureFfi extends FlutterCapture {
       .asFunction<void Function(ffi.Pointer<ffi.Pointer<ffi.Float>>)>();
 
   @override
-  void getCaptureAudioTexture(AudioData samples) {
-    return _getCaptureTexture(samples.samples1D);
+  void getCaptureAudioTexture(dynamic samples) {
+    return _getCaptureTexture((samples as AudioDataCtrl).samples1D);
   }
 
   late final _getCaptureTexturePtr =
@@ -183,8 +183,8 @@ class FlutterCaptureFfi extends FlutterCapture {
       _getCaptureTexturePtr.asFunction<void Function(ffi.Pointer<ffi.Float>)>();
 
   @override
-  CaptureErrors getCaptureAudioTexture2D(AudioData samples) {
-    int ret = _getCaptureAudioTexture2D(samples.samples2D);
+  CaptureErrors getCaptureAudioTexture2D(dynamic samples) {
+    int ret = _getCaptureAudioTexture2D((samples as AudioDataCtrl).samples2D);
     return CaptureErrors.values[ret];
   }
 

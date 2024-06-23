@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:js_interop';
 
-import 'package:flutter_soloud/src/bindings/audio_data.dart';
+import 'package:flutter_soloud/src/bindings/audio_data_web.dart';
 import 'package:flutter_soloud/src/bindings/bindings_capture.dart';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/sound_hash.dart';
@@ -74,23 +74,23 @@ class FlutterCaptureWeb extends FlutterCapture {
   }
 
   @override
-  void getCaptureFft(AudioData fft) {
-    return wasmGetCaptureFft(fft.ctrl.samplesPtr);
+  void getCaptureFft(dynamic fft) {
+    return wasmGetCaptureFft((fft as AudioDataCtrl).samplesPtr);
   }
 
   @override
-  void getCaptureWave(AudioData wave) {
-    return wasmGetCaptureWave(wave.ctrl.samplesPtr);
+  void getCaptureWave(dynamic wave) {
+    return wasmGetCaptureWave((wave as AudioDataCtrl).samplesPtr);
   }
 
   @override
-  void getCaptureAudioTexture(AudioData samples) {
-    wasmGetCaptureAudioTexture(samples.ctrl.samplesPtr);
+  void getCaptureAudioTexture(dynamic samples) {
+    wasmGetCaptureAudioTexture((samples as AudioDataCtrl).samplesPtr);
   }
 
   @override
-  CaptureErrors getCaptureAudioTexture2D(AudioData samples) {
-    final e = wasmGetCaptureAudioTexture2D(samples.ctrl.samplesPtr);
+  CaptureErrors getCaptureAudioTexture2D(dynamic samples) {
+    final e = wasmGetCaptureAudioTexture2D((samples as AudioDataCtrl).samplesPtr);
     return CaptureErrors.values[e];
   }
 
