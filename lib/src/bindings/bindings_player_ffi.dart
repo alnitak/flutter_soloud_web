@@ -8,12 +8,13 @@ import 'dart:ffi' as ffi;
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
-import 'package:flutter_soloud/src/bindings/audio_data_ffi.dart';
 import 'package:flutter_soloud/src/bindings/bindings_player.dart';
+import 'package:flutter_soloud/src/bindings/audio_data.dart';
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/sound_handle.dart';
 import 'package:flutter_soloud/src/sound_hash.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 typedef DartVoiceEndedCallbackT
     = ffi.Pointer<ffi.NativeFunction<DartVoiceEndedCallbackTFunction>>;
@@ -47,6 +48,7 @@ typedef DartdartStateChangedCallbackTFunction = void Function(
     ffi.Pointer<ffi.Int32>);
 
 /// FFI bindings to SoLoud
+  @internal
 class FlutterSoLoudFfi extends FlutterSoLoud {
   static final Logger _log = Logger('flutter_soloud.FlutterSoLoudFfi');
 
@@ -541,8 +543,8 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
       _getVisualizationEnabledPtr.asFunction<int Function()>();
 
   @override
-  void getFft(dynamic fft) {
-    return _getFft((fft as AudioDataCtrl).samplesWave);
+  void getFft(AudioData fft) {
+    return _getFft(fft.samplesWave);
   }
 
   late final _getFftPtr = _lookup<
@@ -552,8 +554,8 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
       .asFunction<void Function(ffi.Pointer<ffi.Pointer<ffi.Float>>)>();
 
   @override
-  void getWave(dynamic wave) {
-    return _getWave((wave as AudioDataCtrl).samplesWave);
+  void getWave(AudioData wave) {
+    return _getWave(wave.samplesWave);
   }
 
   late final _getWavePtr = _lookup<
@@ -575,8 +577,8 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
       _setFftSmoothingPtr.asFunction<void Function(double)>();
 
   @override
-  void getAudioTexture(dynamic samples) {
-    return _getAudioTexture((samples as AudioDataCtrl).samples1D);
+  void getAudioTexture(AudioData samples) {
+    return _getAudioTexture(samples.samples1D);
   }
 
   late final _getAudioTexturePtr =
@@ -587,12 +589,11 @@ class FlutterSoLoudFfi extends FlutterSoLoud {
       _getAudioTexturePtr.asFunction<void Function(ffi.Pointer<ffi.Float>)>();
 
   @override
-  PlayerErrors getAudioTexture2D(dynamic samples) {
-    final s = samples as AudioDataCtrl;
-    if (s.isEmptyTexture()) {
+  PlayerErrors getAudioTexture2D(AudioData samples) {
+    if (samples.isEmpty) {
       return PlayerErrors.nullPointer;
     }
-    final ret = _getAudioTexture2D(s.samples2D);
+    final ret = _getAudioTexture2D(samples.samples2D);
     return PlayerErrors.values[ret];
   }
 

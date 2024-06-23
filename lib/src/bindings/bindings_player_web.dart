@@ -1,12 +1,16 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter_soloud/src/bindings/audio_data_web.dart';
+import 'package:flutter_soloud/src/bindings/audio_data.dart';
 import 'package:flutter_soloud/src/bindings/bindings_player.dart';
 import 'package:flutter_soloud/src/bindings/js_extension.dart';
 
 import 'package:flutter_soloud/src/enums.dart';
 import 'package:flutter_soloud/src/sound_hash.dart';
 import 'package:flutter_soloud/src/sound_handle.dart';
+import 'package:flutter_soloud/src/worker/worker.dart';
+import 'package:meta/meta.dart';
+import 'package:logging/logging.dart';
 
 /// https://kapadia.github.io/emscripten/2013/09/13/emscripten-pointers-and-pointers.html
 /// https://emscripten.org/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#access-memory-from-javascript
@@ -18,27 +22,51 @@ import 'package:flutter_soloud/src/sound_handle.dart';
 /// https://stackoverflow.com/questions/65423861/call-dart-method-from-js-in-flutter-web
 
 /// JS/WASM bindings to SoLoud
+@internal
 class FlutterSoLoudWeb extends FlutterSoLoud {
-  /// Singleton to permit 'worker.dart' to access [voiceCallbackFromJs].
-  static FlutterSoLoudWeb? _instance;
+  static final Logger _log = Logger('flutter_soloud.FlutterSoLoudFfi');
 
-  FlutterSoLoudWeb._();
+  // static FlutterSoLoudWeb? _instance;
 
-  factory FlutterSoLoudWeb() => _instance ??= FlutterSoLoudWeb._();
+  WorkerController? _workerController;
 
-  /// Create the worker in the WASM Module.
+  // FlutterSoLoudWeb._();
+
+  // factory FlutterSoLoudWeb() => _instance ??= FlutterSoLoudWeb._();
+
+  /// Create the worker in the WASM Module and listen for events coming
+  /// from `web/worker.dart.js`
   @override
   void setDartEventCallbacks() {
+    // This calls the native WASM `createWorkerInWasm()` in `bindings.cpp`.
+    // The latter creates a web Worker using `EM_ASM` inlining JS code to
+    // create the worker in the WASM `Module`.
     wasmCreateWorkerInWasm();
+
+    // Here the `Module.wasmModule` binded to a local [WorkerController]
+    // is used in the main isolate to listen for events coming from native.
+    // From native the events can be sent from the main thread and even from
+    // other threads like the audio thread.
+    _workerController = WorkerController();
+    _workerController!.setWasmWorker(wasmWorker);
+    _workerController!.onReceive().listen(
+      (event) {
+        /// The [event] coming from `web/worker.dart.js` is of String type.
+        /// Only `voiceEndedCallback` event in web for now.
+        switch (event) {
+          case String():
+            final decodedMap = jsonDecode(event);
+            if (decodedMap['message'] == 'voiceEndedCallback') {
+              _log.finest(
+                  () => 'VOICE ENDED EVENT handle: ${decodedMap['value']}\n');
+              voiceEndedEventController.add(decodedMap['value']);
+            }
+        }
+      },
+    );
   }
 
-  /// This is the function called by "web/worker.dart" compiled
-  /// to "web/worker.dart.js".
-  void voiceCallbackFromJs(int handle) {
-    print('EUREKAAAAAAAAAAA  BBBBBBBBBBBB DART void voiceCallbackFromJs()  $handle');
-    voiceEndedEventController.add(handle);
-  }
-
+  /// If we will need to send messages to the native. Not used now.
   void sendMessageToWasmWorker(String message, int value) {
     final messagePtr = wasmMalloc(message.length);
     for (var i = 0; i < message.length; i++) {
@@ -273,13 +301,13 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
   }
 
   @override
-  void getFft(dynamic fft) {
-    wasmGetFft((fft as AudioDataCtrl).samplesPtr);
+  void getFft(AudioData fft) {
+    wasmGetWave(fft.ctrl.samplesPtr);
   }
 
   @override
-  void getWave(dynamic wave) {
-    wasmGetWave((wave as AudioDataCtrl).samplesPtr);
+  void getWave(AudioData wave) {
+    wasmGetWave(wave.ctrl.samplesPtr);
   }
 
   @override
@@ -288,13 +316,13 @@ class FlutterSoLoudWeb extends FlutterSoLoud {
   }
 
   @override
-  void getAudioTexture(dynamic samples) {
-    wasmGetAudioTexture((samples as AudioDataCtrl).samplesPtr);
+  void getAudioTexture(AudioData samples) {
+    wasmGetAudioTexture(samples.ctrl.samplesPtr);
   }
 
   @override
-  PlayerErrors getAudioTexture2D(dynamic samples) {
-    final e = wasmGetAudioTexture2D((samples as AudioDataCtrl).samplesPtr);
+  PlayerErrors getAudioTexture2D(AudioData samples) {
+    final e = wasmGetAudioTexture2D(samples.ctrl.samplesPtr);
     return PlayerErrors.values[e];
   }
 

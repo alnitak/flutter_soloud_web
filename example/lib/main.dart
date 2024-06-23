@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'dart:io';
+import 'dart:developer' as dev;
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -19,8 +20,24 @@ import 'package:flutter_soloud/src/filter_params.dart';
 import 'package:flutter_soloud/src/bindings/audio_data.dart';
 import 'package:flutter_soloud_example/bars.dart';
 import 'package:flutter_soloud/src/bindings/audio_data_extensions.dart';
+import 'package:logging/logging.dart';
 
 void main() async {
+  Logger.root.level = kDebugMode ? Level.FINEST : Level.INFO;
+  Logger.root.onRecord.listen((record) {
+    dev.log(
+      record.message,
+      time: record.time,
+      level: record.level.value,
+      name: record.loggerName,
+      zone: record.zone,
+      error: record.error,
+      stackTrace: record.stackTrace,
+    );
+  });
+
+  WidgetsFlutterBinding.ensureInitialized();
+
   // await SoLoud.instance.init();
   // SoLoudCapture.instance.initialize();
   // SoLoud.instance.setVisualizationEnabled(true);
@@ -134,18 +151,9 @@ class _MyAppState extends State<MyApp> {
                         soundHash = audioSource!.soundHash;
                       } on Exception catch (_) {}
                     }
-                  } else {
-                    try {
-                      audioSource = await _flutterSoloudPlugin.loadMem(
-                        '/home/deimos/5/12.-Animal Instinct.flac',
-                        File('/home/deimos/5/12.-Animal Instinct.flac')
-                            .readAsBytesSync(),
-                      );
-                      soundHash = audioSource!.soundHash;
-                    } on Exception catch (_) {}
                   }
                 },
-                child: const Text('load mem'),
+                child: const Text('load mem picked file into'),
               ),
               OutlinedButton(
                 onPressed: () async {

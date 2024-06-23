@@ -247,7 +247,7 @@ interface class SoLoud {
 
       // TODO(filip): The Loader is not compatible with web!
       //              Commenting this temporarly!
-      /// await _loader.initialize();
+      // await _loader.initialize();
     } else {
       _log.severe('initialize() failed with error: $error');
     }

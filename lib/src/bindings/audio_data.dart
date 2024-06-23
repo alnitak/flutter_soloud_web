@@ -25,17 +25,17 @@ enum GetSamplesFrom {
 enum GetSamplesKind {
   /// Get data in a linear manner: the first 256 floats are audio FFI values,
   /// the other 256 are audio wave samples.
-  /// To get audio data use [AudioData.getLinear].
+  /// To get the audio data use [AudioData.getLinear].
   linear,
 
   /// Get data in a 2D way. The resulting data will be a matrix of 256
   /// [linear] rows. Each time the [AudioData.updateSamples] method is called,
   /// the last row is discarded and the new one will be the first.
-  /// To get audio data use [AudioData.getTexture].
+  /// To get the audio data use [AudioData.getTexture].
   texture,
 
   /// Get the 256 float of wave audio data.
-  /// To get audio data use [AudioData.getWave].
+  /// To get the audio data use [AudioData.getWave].
   wave,
 }
 
@@ -104,8 +104,6 @@ enum GetSamplesKind {
 ///
 ///
 // TODO(): make AudioData singleton?
-//     add capture exceptions
-//    fix worker.dart
 @experimental
 class AudioData {
   /// Initialize the way the audio data should be acquired.
@@ -113,53 +111,57 @@ class AudioData {
     this._getSamplesFrom,
     this._getSamplesKind,
   ) : ctrl = AudioDataCtrl() {
-    // if (_getSamplesFrom == GetSamplesFrom.player) {
-    //   if (_getSamplesKind == GetSamplesKind.texture) {
-    //     _updateCallback = ctrl.texture2DCallback;
-    //     _samples2D = ctrl.allocSample2D();
-    //   } else {
-    //     _updateCallback = ctrl.textureCallback;
-    //     _samples1D = ctrl.allocSample1D();
-    //   }
-    // } else {
-    //   if (_getSamplesKind == GetSamplesKind.texture) {
-    //     _updateCallback = ctrl.captureTexture2DCallback;
-    //     _samples2D = ctrl.allocSample2D();
-    //   } else {
-    //     _updateCallback = ctrl.captureAudioTextureCallback;
-    //     _samples1D = ctrl.allocSample1D();
-    //   }
-    // }
     switch (_getSamplesFrom) {
       case GetSamplesFrom.player:
         switch (_getSamplesKind) {
           case GetSamplesKind.linear:
             _updateCallback = ctrl.textureCallback;
-            ctrl.allocSample1D();
+            _samples1D = ctrl.allocSample1D();
           case GetSamplesKind.texture:
             _updateCallback = ctrl.texture2DCallback;
-            ctrl.allocSample2D();
+            _samples2D = ctrl.allocSample2D();
           case GetSamplesKind.wave:
             _updateCallback = ctrl.waveCallback;
-            ctrl.allocSampleWave();
+            _samplesWave = ctrl.allocSampleWave();
         }
       case GetSamplesFrom.microphone:
         switch (_getSamplesKind) {
           case GetSamplesKind.linear:
             _updateCallback = ctrl.captureAudioTextureCallback;
-            ctrl.allocSample1D();
+            _samples1D = ctrl.allocSample1D();
           case GetSamplesKind.texture:
             _updateCallback = ctrl.captureTexture2DCallback;
-            ctrl.allocSample2D();
+            _samples2D = ctrl.allocSample2D();
           case GetSamplesKind.wave:
-            ctrl.allocSampleWave();
             _updateCallback = ctrl.captureWaveCallback;
+            _samplesWave = ctrl.allocSampleWave();
         }
     }
   }
 
   @internal
   final AudioDataCtrl ctrl;
+
+  /// Where the FFT or wave data is stored.
+  late final SampleFormat2D _samplesWave;
+
+  /// The getter for [_samplesWave].
+  @internal
+  SampleFormat2D get samplesWave => _samplesWave;
+
+  /// Where the audio 2D data is stored.
+  late final SampleFormat2D _samples2D;
+
+  /// The getter for [_samples2D].
+  @internal
+  SampleFormat2D get samples2D => _samples2D;
+
+  /// Where the audio 1D data is stored.
+  late final SampleFormat1D _samples1D;
+
+  /// The getter for [_samples1D].
+  @internal
+  SampleFormat1D get samples1D => _samples1D;
 
   /// Where to get audio samples. See [GetSamplesFrom].
   final GetSamplesFrom _getSamplesFrom;
@@ -172,12 +174,18 @@ class AudioData {
   /// The callback used to get new audio samples.
   /// This callback is used in [updateSamples] to avoid to
   /// do the [GetSamplesFrom] and [GetSamplesKind] checks on every calls.
-  late void Function(AudioDataCtrl) _updateCallback;
+  late void Function(AudioData) _updateCallback;
 
-  /// Update the content of samples memory to be get with [getLinear] or [getTexture].
+  /// Update the content of samples memory to be get with [getLinear]
+  /// or [getTexture].
   ///
-  /// Throws [SoLoudNotInitializedException] if the engine is not initialized.
-  /// Throws [SoLoudVisualizationNotEnabledException] if the visualization
+  /// When using [GetSamplesFrom.microphone] throws 
+  /// [SoLoudCaptureNotYetInitializededException] if the capture is
+  /// not initialized.
+  /// When using [GetSamplesFrom.player] throws [SoLoudNotInitializedException] 
+  /// if the engine is not initialized.
+  /// When using [GetSamplesFrom.player] throws 
+  /// [SoLoudVisualizationNotEnabledException] if the visualization
   /// flag is not enableb. Please, Use `setVisualizationEnabled(true)`
   /// when needed.
   /// Throws [SoLoudNullPointerException] something is going wrong with the
@@ -185,31 +193,42 @@ class AudioData {
   /// [GitHub](https://github.com/alnitak/flutter_soloud/issues) providing
   /// a simple working example.
   void updateSamples() {
-    if (!SoLoudController().soLoudFFI.isInited()) {
+    if (getSamplesFrom == GetSamplesFrom.microphone &&
+        !SoLoudController().captureFFI.isCaptureInited()) {
+      throw const SoLoudCaptureNotYetInitializededException();
+    }
+    if (getSamplesFrom == GetSamplesFrom.player &&
+        !SoLoudController().soLoudFFI.isInited()) {
       throw const SoLoudNotInitializedException();
     }
-    if (!SoLoudController().soLoudFFI.getVisualizationEnabled()) {
+    if (getSamplesFrom == GetSamplesFrom.player &&
+        !SoLoudController().soLoudFFI.getVisualizationEnabled()) {
       throw const SoLoudVisualizationNotEnabledException();
     }
-    _updateCallback(ctrl);
+    _updateCallback(this);
   }
 
   /// Dispose the memory allocated to acquire audio data.
   /// Must be called when there is no more need of [AudioData].
   void dispose() {
-    ctrl.dispose();
+    ctrl.dispose(_samples1D, _samples2D);
   }
 
+  /// Get the wave data at offset [offset.]
+  /// 
+  /// Use this method to get data when using [GetSamplesKind.linear].
+  /// The data is composed of 256 floats. 
   double getWave(SampleWave offset) {
     if (_getSamplesKind != GetSamplesKind.wave) return 0;
 
     if (!SoLoudController().soLoudFFI.getVisualizationEnabled()) {
       throw const SoLoudVisualizationNotEnabledException();
     }
-    return ctrl.getWave(offset);
+    return ctrl.getWave(_samplesWave, offset);
   }
 
   /// Get the audio data at offset [offset].
+  /// 
   /// Use this method to get data when using [GetSamplesKind.linear].
   /// The first 256 float represents FFT data, the other 256 are wave data.
   double getLinear(SampleLinear offset) {
@@ -218,7 +237,7 @@ class AudioData {
     if (!SoLoudController().soLoudFFI.getVisualizationEnabled()) {
       throw const SoLoudVisualizationNotEnabledException();
     }
-    return ctrl.getLinear(offset);
+    return ctrl.getLinear(_samples1D, offset);
   }
 
   /// Get the audio data at row [row] and column [column].
@@ -233,13 +252,13 @@ class AudioData {
     if (!SoLoudController().soLoudFFI.getVisualizationEnabled()) {
       throw const SoLoudVisualizationNotEnabledException();
     }
-    return ctrl.getTexture(row, column);
+    return ctrl.getTexture(_samples2D, row, column);
   }
 
   // Wether or not the current used data is empty.
   bool get isEmpty => _getSamplesKind == GetSamplesKind.texture
-      ? ctrl.isEmptyTexture()
+      ? ctrl.isEmptyTexture(_samples2D)
       : _getSamplesKind == GetSamplesKind.linear
-          ? ctrl.isEmptyLinear()
-          : ctrl.isEmptyTexture(); // GetSamplesKind.wave
+          ? ctrl.isEmptyLinear(_samples1D)
+          : ctrl.isEmptyWave(_samplesWave); // GetSamplesKind.wave
 }

@@ -45,12 +45,12 @@ extern "C"
         printf("CPP void createWorkerInWasm()\n");
         
         EM_ASM({
-            if (!Module.workerWasm) 
+            if (!Module.wasmWorker) 
             {
                 // Create a new Worker from the URI
                 var workerUri = "assets/packages/flutter_soloud/web/worker.dart.js";
                 console.log("EM_ASM creating web worker!");
-                Module.workerWasm = new Worker(workerUri);
+                Module.wasmWorker = new Worker(workerUri);
             }
             else
             {
@@ -63,12 +63,12 @@ extern "C"
     FFI_PLUGIN_EXPORT void sendToWorker(const char *message, int value)
     {
         EM_ASM({
-            if (Module.workerWasm)
+            if (Module.wasmWorker)
             {
                 console.log("EM_ASM posting message " + UTF8ToString($0) + 
                     " with value " + $1);
                 // Send the message
-                Module.workerWasm.postMessage(JSON.stringify({
+                Module.wasmWorker.postMessage(JSON.stringify({
                     message : UTF8ToString($0),
                     value : $1
                 }));

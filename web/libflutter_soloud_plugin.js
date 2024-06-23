@@ -929,18 +929,18 @@ var ASM_CONSTS = {
   device.state = window.miniaudio.device_state.stopped;
  },
  74038: () => {
-  if (!Module.workerWasm) {
+  if (!Module.wasmWorker) {
    var workerUri = "assets/packages/flutter_soloud/web/worker.dart.js";
    console.log("EM_ASM creating web worker!");
-   Module.workerWasm = new Worker(workerUri);
+   Module.wasmWorker = new Worker(workerUri);
   } else {
    console.log("EM_ASM web worker already created!");
   }
  },
  74286: ($0, $1) => {
-  if (Module.workerWasm) {
+  if (Module.wasmWorker) {
    console.log("EM_ASM posting message " + UTF8ToString($0) + " with value " + $1);
-   Module.workerWasm.postMessage(JSON.stringify({
+   Module.wasmWorker.postMessage(JSON.stringify({
     message: UTF8ToString($0),
     value: $1
    }));

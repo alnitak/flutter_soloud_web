@@ -45,7 +45,7 @@ import 'package:web/web.dart' as web;
   @JS('Module._sendToWorker')
   external void wasmSendToWorker(int message, int value);
 
-  @JS('Module.worker')
+  @JS('Module.wasmWorker')
   external web.Worker wasmWorker;
 
   @JS('Module._initEngine')
